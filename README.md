@@ -18,7 +18,7 @@ TWITTER_ACCESS_TOKEN_SECRET=Twitter access token secret for ditto
 In Dropbox, you'll need:
 
 1. A folder where the stills live, e.g. /stills
-2. An empty JSON file called <name>.json, e.g. /stills.json, where all the tweeted images will be registered into by the `tweet` command. The folder and the JSON file need to live at the same level
+2. An empty JSON file called `<name>.json`, e.g. /stills.json, where all the tweeted images will be registered into by the `tweet` command. The folder and the JSON file need to live at the same level
 
 ## Commands
 
