@@ -5,8 +5,8 @@ const screenshot = require('../lib/screenshot');
 const dropbox = require('../lib/dropbox');
 
 const path = require('path');
-const VIDEO_FOLDER = path.resolve('../videos');
-const STILLS_FOLDER = path.resolve('../stills');
+const VIDEO_FOLDER = path.resolve('./videos');
+const STILLS_FOLDER = path.resolve('./stills');
 
 const _ = require('lodash');
 const fs = require('fs');
