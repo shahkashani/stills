@@ -11,16 +11,16 @@ const STILLS_FOLDER = path.resolve('./stills');
 const _ = require('lodash');
 const fs = require('fs');
 
-const globArg = process.argv[2];
+const count = parseInt(process.argv[2], 10) || 4;
+const min = parseFloat(process.argv[3]) || 0.2;
+const max = parseFloat(process.argv[4]) || 0.8;
+const timestamps = process.argv[5]
+  ? process.argv[5].split(',').map(pos => parseFloat(pos))
+  : [];
+const globArg = process.argv[5];
 const globPattern = globArg
   ? `**/${globArg}*.{mp4,avi,mov}`
   : '**/*.{mp4,avi,mov}';
-const count = parseInt(process.argv[3], 10) || 4;
-const min = parseFloat(process.argv[4]) || 0.2;
-const max = parseFloat(process.argv[5]) || 0.8;
-const timestamps = process.argv[6]
-  ? process.argv[6].split(',').map(pos => parseFloat(pos))
-  : [];
 
 const deleteDupes = (existingFiles, newFiles) => {
   return new Promise((resolve, reject) => {
@@ -34,13 +34,13 @@ const deleteDupes = (existingFiles, newFiles) => {
 
 screenshot
   .makeStills(
-    globPattern,
-    VIDEO_FOLDER,
-    STILLS_FOLDER,
-    count,
-    min,
-    max,
-    timestamps
+  globPattern,
+  VIDEO_FOLDER,
+  STILLS_FOLDER,
+  count,
+  min,
+  max,
+  timestamps
   )
   .then(files => {
     console.log(`Done making ${files.length} stills!`);
