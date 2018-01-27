@@ -1,0 +1,28 @@
+{
+  "name": "stills",
+  "version": "1.0.0",
+  "description": "Stills Tweetbot",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shahkashani/stills"
+  },
+  "bin": {
+    "connect": "bin/connect.js",
+    "tweet": "bin/tweet.js",
+    "stills": "bin/stills.js"
+  },
+  "engines": {
+    "node": ">8"
+  },
+  "author": "Shah Kashani",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^4.0.0",
+    "dropbox": "^2.5.12",
+    "glob": "^7.1.2",
+    "lodash": "^4.17.4",
+    "shelljs": "^0.7.8",
+    "twitter": "^1.7.1"
+  }
+}
