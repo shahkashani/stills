@@ -34,6 +34,10 @@ Create stills from `videos` folder into `stills` folder. The first parameter is 
 
 You'll then (manually, for now) take these stills and upload them to Dropbox.
 
+### gifs (expertimental)
+
+Same as `stills`, but creates GIFs in a `gifs` folder.
+
 ### tweet
 
-Connects to Dropbox and tweets out a still from the image, and updates the JSON file with the image name and the final tweet URL
+Connects to Dropbox and tweets out a still from the image, and updates the JSON file with the image name and the live tweet URL.

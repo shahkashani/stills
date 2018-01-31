@@ -1,6 +1,6 @@
 {
   "name": "stills",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Stills Tweetbot",
   "main": "index.js",
   "repository": {
@@ -10,7 +10,8 @@
   "bin": {
     "connect": "bin/connect.js",
     "tweet": "bin/tweet.js",
-    "stills": "bin/stills.js"
+    "stills": "bin/stills.js",
+    "gifs": "bin/gifs.js"
   },
   "engines": {
     "node": ">8"
