@@ -17,15 +17,6 @@ dropbox
     const matches = basename.match(/(.*) @ (.*)$/);
     const episodeName = matches[1];
 
-    if (tumblr.canConnect()) {
-      tumblr.post(binary, episodeName)
-        .then((post) => {
-          console.log('Tumbl\'d', post);
-        }).catch(error => {
-          console.log('Did not post to Tumblr:', error);
-        });
-    }
-
     if (twitter.canConnect()) {
       twitter
         .post(binary)
@@ -42,6 +33,15 @@ dropbox
         })
         .catch(error => {
           console.log('That tweet did NOT go OK:', error);
+        });
+    }
+
+    if (tumblr.canConnect()) {
+      tumblr.post(binary, episodeName)
+        .then((post) => {
+          console.log('Tumbl\'d', post);
+        }).catch(error => {
+          console.log('Did not post to Tumblr:', error);
         });
     }
   })
