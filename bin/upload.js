@@ -5,6 +5,7 @@ const path = require('path');
 const glob = require('glob');
 const dropbox = require('../lib/dropbox');
 const fs = require('fs');
+const path = require('path');
 
 const STILLS_FOLDER = path.resolve('./stills');
 
@@ -16,7 +17,7 @@ const uploadSeries = files => {
     return;
   }
   const file = files.shift();
-  console.log(`Uploading ${fs.basename(file)}...`);
+  console.log(`Uploading ${path.basename(file)}...`);
   dropbox.uploadPhoto(file).then(() => {
     fs.unlinkSync(file);
     uploadSeries(files);
