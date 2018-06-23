@@ -5,7 +5,6 @@ const path = require('path');
 const glob = require('glob');
 const dropbox = require('../lib/dropbox');
 const fs = require('fs');
-const path = require('path');
 
 const STILLS_FOLDER = path.resolve('./stills');
 
