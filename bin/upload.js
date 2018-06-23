@@ -16,7 +16,7 @@ const uploadSeries = files => {
     return;
   }
   const file = files.shift();
-  console.log(`Uploading ${file}...`);
+  console.log(`Uploading ${fs.basename(file)}...`);
   dropbox.uploadPhoto(file).then(() => {
     fs.unlinkSync(file);
     uploadSeries(files);
