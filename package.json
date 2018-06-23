@@ -11,7 +11,8 @@
     "connect": "bin/connect.js",
     "tweet": "bin/tweet.js",
     "stills": "bin/stills.js",
-    "gifs": "bin/gifs.js"
+    "gifs": "bin/gifs.js",
+    "upload": "bin/upload.js"
   },
   "engines": {
     "node": ">8"
@@ -23,7 +24,7 @@
     "dropbox": "^2.5.12",
     "glob": "^7.1.2",
     "jimp": "^0.2.28",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.10",
     "shelljs": "^0.7.8",
     "tumblr.js": "^1.1.1",
     "twitter": "^1.7.1"
