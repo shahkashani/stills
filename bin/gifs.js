@@ -2,14 +2,10 @@
 require('dotenv').config();
 
 const screenshot = require('../lib/screenshot');
-const dropbox = require('../lib/dropbox');
 
 const path = require('path');
 const VIDEO_FOLDER = path.resolve('./videos');
 const GIFS_FOLDER = path.resolve('./gifs');
-
-const _ = require('lodash');
-const fs = require('fs');
 
 const count = parseInt(process.argv[2], 10) || 5;
 
