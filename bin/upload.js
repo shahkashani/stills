@@ -7,8 +7,12 @@ const dropbox = require('../lib/dropbox');
 const fs = require('fs');
 
 const STILLS_FOLDER = path.resolve('./stills');
+const GIFS_FOLDER = path.resolve('./gifs');
 
-const files = glob.sync(`${STILLS_FOLDER}/*.png`);
+const files = [
+  ...glob.sync(`${STILLS_FOLDER}/*.png`),
+  ...glob.sync(`${GIFS_FOLDER}/*.gif`)
+];
 
 const uploadSeries = files => {
   if (files.length === 0) {
