@@ -34,13 +34,13 @@ const deleteDupes = (existingFiles, newFiles) => {
 
 screenshot
   .makeStills(
-  globPattern,
-  VIDEO_FOLDER,
-  STILLS_FOLDER,
-  count,
-  min,
-  max,
-  timestamps
+    globPattern,
+    VIDEO_FOLDER,
+    STILLS_FOLDER,
+    count,
+    min,
+    max,
+    timestamps
   )
   .then(files => {
     console.log(`Done making ${files.length} stills!`);

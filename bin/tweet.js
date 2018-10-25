@@ -4,7 +4,6 @@ require('dotenv').config();
 const dropbox = require('../lib/dropbox');
 const twitter = require('../lib/twitter');
 const tumblr = require('../lib/tumblr');
-const fs = require('fs');
 const path = require('path');
 
 console.log(`Tweetin'...`);
@@ -23,7 +22,7 @@ dropbox
         .then(tweet => {
           const tweetURL = `https://twitter.com/${
             tweet.user.screen_name
-            }/status/${tweet.id_str}`;
+          }/status/${tweet.id_str}`;
 
           console.log(`That tweet went OK! ${tweetURL}`);
 
@@ -37,10 +36,12 @@ dropbox
     }
 
     if (tumblr.canConnect()) {
-      tumblr.post(binary, episodeName)
-        .then((post) => {
-          console.log('Tumbl\'d', post);
-        }).catch(error => {
+      tumblr
+        .post(binary, episodeName)
+        .then(post => {
+          console.log("Tumbl'd", post);
+        })
+        .catch(error => {
           console.log('Did not post to Tumblr:', error);
         });
     }
