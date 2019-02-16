@@ -10,7 +10,7 @@ const GIFS_FOLDER = path.resolve('./gifs');
 const count = parseInt(process.argv[2], 10) || 5;
 
 screenshot
-  .makeGifs('**/*.{mp4,avi,mov}', VIDEO_FOLDER, GIFS_FOLDER, count, 0.2, 0.8)
+  .makeGifs('**/*.{mp4,avi,mov,mkv}', VIDEO_FOLDER, GIFS_FOLDER, count, 0.2, 0.8)
   .then(files => {
     console.log(`Done making ${files.length} GIFs!`);
   })

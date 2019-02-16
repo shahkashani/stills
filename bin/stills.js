@@ -19,8 +19,8 @@ const timestamps = process.argv[5]
   : [];
 const globArg = process.argv[5];
 const globPattern = globArg
-  ? `**/${globArg}*.{mp4,avi,mov}`
-  : '**/*.{mp4,avi,mov}';
+  ? `**/${globArg}*.{mp4,avi,mov,mkv}`
+  : '**/*.{mp4,avi,mov,mkv}';
 
 const deleteDupes = (existingFiles, newFiles) => {
   return new Promise((resolve, reject) => {
