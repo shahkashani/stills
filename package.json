@@ -12,7 +12,8 @@
     "tweet": "bin/tweet.js",
     "stills": "bin/stills.js",
     "gifs": "bin/gifs.js",
-    "upload": "bin/upload.js"
+    "upload": "bin/upload.js",
+    "train": "bin/train.js"
   },
   "engines": {
     "node": "10.x"

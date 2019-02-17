@@ -6,19 +6,27 @@ const _ = require('lodash');
 const fs = require('fs');
 const screenshot = require('../lib/screenshot');
 const dropbox = require('../lib/dropbox');
+const glob = require('glob');
 
 const argv = require('yargs')
   .usage('Usage: $0 <command> [options]')
   .default('num', 5)
+  .default('accuracy', 60)
   .describe(
     'faces',
     '0-100, how many percentage of images should include faces'
+  )
+  .describe(
+    'accuracy',
+    '0-100, how close the face should be to the trained model'
   ).argv;
 
 const VIDEO_FOLDER = path.resolve('./videos');
 const STILLS_FOLDER = path.resolve('./stills');
+const FACES_FOLDER = path.resolve('./faces');
 
 const faces = argv.faces;
+const accuracy = argv.accuracy;
 const num = argv.num;
 
 const deleteDupes = async (existingFiles, newFiles) => {
@@ -32,28 +40,64 @@ const deleteDupes = async (existingFiles, newFiles) => {
 const processFaces = async (facesRate, files) => {
   const fr = require('face-recognition');
   const detector = fr.FaceDetector();
+  const recognizer = fr.FaceRecognizer();
   const remainingFiles = [];
   const deleteChance = facesRate / 100;
+  const faces = glob.sync(`${FACES_FOLDER}/*.json`);
+  const useRecognizer = faces.length > 0;
+  console.log(`\nProcessing faces at ${facesRate}% (accuracy: ${accuracy})`);
 
-  console.log(`\nProcessing faces at ${facesRate}%`);
+  if (useRecognizer) {
+    for (const face of faces) {
+      console.log(`Using recognizer ${path.basename(face)}...`);
+      recognizer.load(require(face));
+    }
+  }
 
   for (const file of files) {
     const path = `${STILLS_FOLDER}/${file}`;
-    const image = fr.loadImage(path);
+    try {
+      const img = fr.loadImage(path);
+      const faceRects = detector.locateFaces(img).map(res => res.rect);
+      const isFace = faceRects.length > 0;
+      let isPass = isFace;
 
-    const faceRectangles = detector.locateFaces(image);
-
-    const isFace = faceRectangles.length > 0;
-
-    if (!isFace) {
-      if (Math.random() < deleteChance) {
-        console.log(`${file}: Not a face, deleting.`);
-        fs.unlinkSync(path);
+      if (isFace) {
+        if (useRecognizer) {
+          const faces = detector.getFacesFromLocations(img, faceRects, 150);
+          const desiredFaces = faces.reduce((memo, face) => {
+            const prediction = recognizer.predictBest(face, accuracy / 100);
+            if (prediction.className !== 'unknown') {
+              memo.push(prediction.className);
+            }
+            return memo;
+          }, []);
+          if (desiredFaces.length > 0) {
+            console.log(`${file}: Found a face: ${desiredFaces.join(', ')}`);
+          } else {
+            console.log(`${file}: Found a face, but not a trained one.`);
+            isPass = false;
+          }
+        } else {
+          console.log(`${file}: Found a face.`);
+        }
       } else {
-        console.log(`${file}: Not a face, but keeping.`);
-        remainingFiles.push(file);
+        console.log(`${file}: Not a face.`);
       }
-    } else {
+
+      if (isPass) {
+        remainingFiles.push(file);
+      } else {
+        if (Math.random() < deleteChance) {
+          console.log(`\tDeleting.`);
+          fs.unlinkSync(path);
+        } else {
+          console.log(`\tKeeping.`);
+          remainingFiles.push(file);
+        }
+      }
+    } catch (err) {
+      console.log(`Errored: ${err}`);
       remainingFiles.push(file);
     }
   }
@@ -63,7 +107,7 @@ const processFaces = async (facesRate, files) => {
 
 console.log(`Stills: ${num}`);
 if (faces) {
-  console.log(`Faces: ${faces}%`);
+  console.log(`Faces: ${faces}% (${accuracy}% similarity to trained models)`);
 }
 console.log();
 
