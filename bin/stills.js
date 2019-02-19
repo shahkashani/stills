@@ -28,33 +28,33 @@ const FACES_FOLDER = path.resolve('./faces');
 
 const { faces, accuracy, num, glob } = argv;
 
-const makeReduceAwayDupes = existingFiles => newFiles =>
-  newFiles.reduce((memo, newFile) => {
-    if (existingFiles.indexOf(path.basename(newFile)) === -1) {
+const makeReduceAwayDupes = originalFiles => newFiles => {
+  console.log(`🔍 Comparing with ${originalFiles.length} Dropbox images.`);
+  return newFiles.reduce((memo, newFile) => {
+    if (originalFiles.indexOf(path.basename(newFile)) === -1) {
       memo.push(newFile);
     }
     return memo;
   }, []);
+};
 
 const deleteReduced = (originalFiles, newFiles) => {
   originalFiles.forEach(original => {
     if (newFiles.indexOf(original) === -1) {
-      console.log(`Deleting ${original}...`);
+      console.log(`❌ Deleting ${path.basename(original)}...`);
       fs.unlinkSync(original);
     }
   });
 };
 
-console.log(`Stills: ${num}`);
-if (faces) {
-  console.log(`Faces: ${faces}% (${accuracy}% similarity to trained models)\n`);
-}
+const noopReducer = files => {
+  console.log(`👋 We're left with ${files.length} stills. Bye!`);
+  return files;
+};
 
 screenshot
   .makeStills(glob, VIDEO_FOLDER, STILLS_FOLDER, num, 0.2, 0.8, [])
   .then(async files => {
-    console.log(`Done making ${files.length} stills!`);
-
     const tweeted = await dropbox.getTweetedFiles();
     const reducers = [
       {
@@ -74,9 +74,11 @@ screenshot
       });
     }
 
+    reducers.push({ name: 'Bye-bye', fn: noopReducer });
+
     let originalFiles = files.slice();
     for (const reducer of reducers) {
-      console.log(`Running reducer: ${reducer.name}`);
+      console.log(`\n🐎 Running reducer: ${reducer.name}`);
       files = await reducer.fn(files);
       if (!Array.isArray(files)) {
         console.log(`Yo, your reducer (${reducer.name}) must return an array`);
