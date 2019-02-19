@@ -25,6 +25,7 @@
     "dropbox": "^2.5.12",
     "glob": "^7.1.2",
     "lodash": "^4.17.10",
+    "parse-srt": "^1.0.0-alpha",
     "shelljs": "^0.7.8",
     "tumblr.js": "^1.1.1",
     "twitter": "^1.7.1",

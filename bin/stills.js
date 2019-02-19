@@ -17,6 +17,10 @@ const argv = require('yargs')
     '0-100, how many percentage of images should include faces'
   )
   .describe(
+    'captions',
+    '0-100, how many percentage of images should contain captions'
+  )
+  .describe(
     'accuracy',
     '0-100, how close the face should be to the trained model'
   )
@@ -25,8 +29,9 @@ const argv = require('yargs')
 const VIDEO_FOLDER = path.resolve('./videos');
 const STILLS_FOLDER = path.resolve('./stills');
 const FACES_FOLDER = path.resolve('./faces');
+const CAPTIONS_FOLDER = path.resolve('./captions');
 
-const { faces, accuracy, num, glob } = argv;
+const { num, glob, faces, accuracy, captions } = argv;
 
 const makeReduceAwayDupes = originalFiles => newFiles => {
   console.log(`🔍 Comparing with ${originalFiles.length} Dropbox images.`);
@@ -74,6 +79,17 @@ screenshot
       });
     }
 
+    if (captions) {
+      const makeAddCaption = require('../lib/screenshot/make-add-caption');
+      reducers.push({
+        name: 'captions',
+        fn: makeAddCaption({
+          minPercentCaptions: captions,
+          captionsFolder: CAPTIONS_FOLDER
+        })
+      });
+    }
+
     reducers.push({ name: 'Bye-bye', fn: noopReducer });
 
     let originalFiles = files.slice();
@@ -82,6 +98,7 @@ screenshot
       files = await reducer.fn(files);
       if (!Array.isArray(files)) {
         console.log(`Yo, your reducer (${reducer.name}) must return an array`);
+        console.log('Instead I got:', files);
         process.exit(1);
       }
       deleteReduced(originalFiles, files);
