@@ -28,44 +28,62 @@ const FACES_FOLDER = path.resolve('./faces');
 
 const { faces, accuracy, num, glob } = argv;
 
-const deleteDupes = async (existingFiles, newFiles) => {
-  const dupes = _.intersection(
-    existingFiles.map(e => `${STILLS_FOLDER}/${e}`),
-    newFiles
-  );
-  dupes.forEach(dupe => {
-    fs.unlinkSync(dupe);
+const makeReduceAwayDupes = existingFiles => newFiles =>
+  newFiles.reduce((memo, newFile) => {
+    if (existingFiles.indexOf(path.basename(newFile)) === -1) {
+      memo.push(newFile);
+    }
+    return memo;
+  }, []);
+
+const deleteReduced = (originalFiles, newFiles) => {
+  originalFiles.forEach(original => {
+    if (newFiles.indexOf(original) === -1) {
+      console.log(`Deleting ${original}...`);
+      fs.unlinkSync(original);
+    }
   });
-  return dupes;
 };
 
 console.log(`Stills: ${num}`);
 if (faces) {
-  console.log(`Faces: ${faces}% (${accuracy}% similarity to trained models)`);
+  console.log(`Faces: ${faces}% (${accuracy}% similarity to trained models)\n`);
 }
-console.log();
 
 screenshot
   .makeStills(glob, VIDEO_FOLDER, STILLS_FOLDER, num, 0.2, 0.8, [])
   .then(async files => {
     console.log(`Done making ${files.length} stills!`);
 
+    const tweeted = await dropbox.getTweetedFiles();
+    const reducers = [
+      {
+        name: 'dupes',
+        fn: makeReduceAwayDupes(_.map(tweeted, 'name'))
+      }
+    ];
     if (faces) {
-      files = await require('../lib/screenshot/process-faces')(files, {
-        minPercentFaces: faces,
-        faceRecognitionModelFolder: FACES_FOLDER,
-        faceRecognitionThreshold: accuracy
+      const makeProcessFaces = require('../lib/screenshot/make-process-faces');
+      reducers.push({
+        name: 'faces',
+        fn: makeProcessFaces({
+          minPercentFaces: faces,
+          faceRecognitionModelFolder: FACES_FOLDER,
+          faceRecognitionThreshold: accuracy
+        })
       });
     }
 
-    const tweeted = await dropbox.getTweetedFiles();
-    const tweetedNames = _.map(tweeted, 'name');
-    const dupes = await deleteDupes(tweetedNames, files);
-
-    if (dupes.length > 0) {
-      console.log('Deleting dupes', dupes);
-    } else {
-      console.log('...and no dupes!');
+    let originalFiles = files.slice();
+    for (const reducer of reducers) {
+      console.log(`Running reducer: ${reducer.name}`);
+      files = await reducer.fn(files);
+      if (!Array.isArray(files)) {
+        console.log(`Yo, your reducer (${reducer.name}) must return an array`);
+        process.exit(1);
+      }
+      deleteReduced(originalFiles, files);
+      originalFiles = files.slice();
     }
   })
   .catch(err => {
