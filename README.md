@@ -44,7 +44,7 @@ You'll also need three folders in your project:
 
 - `videos/` - where the source material will live. Can basically be any video format.
 - `stills/` - where all the stills will end up
-- `gifs` - where all the gifs will end up
+- `gifs/` - where all the gifs will end up
 
 ## Posting or uploading?
 
