@@ -48,7 +48,7 @@ Same as `stills`, but creates GIFs in a `gifs` folder. Run `gifs --help` for mor
 
 #### `upload`
 
-Upload whatever is in gifs/ and stills/ to Dropbox.
+Upload whatever is in `./gifs` and `./stills` to Dropbox.
 
 ### Posting stills
 
