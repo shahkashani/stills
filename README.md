@@ -4,7 +4,24 @@ A lil' library to help you create a stills bot that creates stills from basicall
 
 ## Setup
 
-You'll need an `.env` file with the following in it:
+This project is a library.
+
+Create your own project and make this a dependency, i.e.:
+
+```{
+  "name": "fieriframes",
+  "version": "1.0.0",
+  "description": "Guy Fieri Frames",
+  "engines": {
+    "node": "10.x"
+  },
+  "dependencies": {
+    "stills": "git+https://github.com/shahkashani/stills.git"
+  }
+}
+```
+
+_In your own project_, you'll need an `.env` file with the following in it:
 
 ```
 # You'll need these two if you're posting (or uploading stills)
@@ -22,6 +39,12 @@ TWITTER_CONSUMER_SECRET=Twitter app consumer secret
 TWITTER_ACCESS_TOKEN_KEY=Twitter access token key for the account that'll be doing the tweeting
 TWITTER_ACCESS_TOKEN_SECRET=Twitter access token secret for ditto
 ```
+
+You'll also need three folders in your project:
+
+- `videos/` - where the source material will live. Can basically be any video format.
+- `stills/` - where all the stills will end up
+- `gifs` - where all the gifs will end up
 
 ## Posting or uploading?
 
@@ -41,6 +64,8 @@ I usually run these wherever I keep the videos, i.e. my personal computer.
 #### `stills`
 
 Create stills from `videos` folder into `stills` folder. Run `stills --help` for more info.
+
+`stills` has a lot of weird parameters. If you need docs for how to train faces, etc., holla at me and I'll fill out this doc.
 
 #### `gifs`
 
