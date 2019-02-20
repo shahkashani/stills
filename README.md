@@ -1,6 +1,8 @@
 # What is this?
 
-A lil' library to help you create a stills bot that creates stills from basically whatever.
+![A Fieri Frame](https://66.media.tumblr.com/9b2fc56a82f38194079d9aead9a4ad31/tumblr_pn6vnuPwrO1y72ak6o1_1280.png)
+
+A lil' library to help you create a stills generator.
 
 ## Setup
 
