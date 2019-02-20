@@ -7,6 +7,7 @@ A lil' library to help you create a stills bot that creates stills from basicall
 You'll need an `.env` file with the following in it:
 
 ```
+# You'll need these two if you're posting (or uploading stills)
 DROPBOX_ACCESS_TOKEN=Access token for the Dropbox account the stills live in
 DROPBOX_FOLDER=Name of the folder the stills live in, e.g. /stills
 # Optional
@@ -22,14 +23,16 @@ TWITTER_ACCESS_TOKEN_KEY=Twitter access token key for the account that'll be doi
 TWITTER_ACCESS_TOKEN_SECRET=Twitter access token secret for ditto
 ```
 
-In Dropbox, you'll need:
+## Posting or uploading?
 
-1. A folder where the stills live, e.g. /stills
-2. An empty JSON file called `<name>.json`, e.g. /stills.json, where all the tweeted images will be registered into by the `tweet` command. The folder and the JSON file need to live at the same level
+If you doing anything else than generating stills (i.e. posting or uploading), you're gonna need to do the following in Dropbox:
+
+1. A folder where the stills live, e.g. `/stills` (specify the name in the `DROPBOX_FOLDER` field in `.env`)
+2. An empty JSON file called `<name>.json`, e.g. `/stills.json`, where all the posted images will be registered. It'll live at the same level as the folder. Start by just uploading a file with the contents `[]`.
 
 ## Commands
 
-Below is a list of commands (you'll need `./node_modules/.bin` in your path).
+Below is a list of commands. You'll need `./node_modules/.bin` in your path, or just prepend that to every command.
 
 ### Generating stills? Here's what you need.
 
@@ -37,19 +40,15 @@ I usually run these wherever I keep the videos, i.e. my personal computer.
 
 #### `stills`
 
-Create stills from `videos` folder into `stills` folder. Run `stills --help` or `./node_modules/.bin/stills --help` for more info.
+Create stills from `videos` folder into `stills` folder. Run `stills --help` for more info.
 
 #### `gifs`
 
 Same as `stills`, but creates GIFs in a `gifs` folder. Run `gifs --help` for more info
 
-I usually run this wherever I keep the videos, i.e. my personal computer.
-
 #### `upload`
 
 Upload whatever is in gifs/ and stills/ to Dropbox.
-
-I usually run this wherever I keep the videos, i.e. my personal computer.
 
 ### Posting stills
 
