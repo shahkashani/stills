@@ -20,11 +20,16 @@ const uploadSeries = files => {
     return;
   }
   const file = files.shift();
-  console.log(`Uploading ${path.basename(file)}...`);
-  dropbox.uploadPhoto(file).then(() => {
-    fs.unlinkSync(file);
-    uploadSeries(files);
-  });
+  console.log(`🚀 Uploading ${path.basename(file)}...`);
+  dropbox
+    .uploadPhoto(file)
+    .then(() => {
+      fs.unlinkSync(file);
+      uploadSeries(files);
+    })
+    .catch(err => {
+      console.log('💥 I am error:', err.error);
+    });
 };
 
 uploadSeries(files);

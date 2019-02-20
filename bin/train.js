@@ -19,7 +19,7 @@ const processFaces = async () => {
   const name = argv.name;
   const inputs = glob.sync(`${INPUT_FOLDER}/*.png`);
   const output = `${OUTPUT_FOLDER}/${name}.json`;
-  console.log(`Trainin "${name}"...'`);
+  console.log(`🏋 Trainin "${name}"...'`);
 
   const faces = inputs.reduce((memo, input) => {
     const image = fr.loadImage(input);
