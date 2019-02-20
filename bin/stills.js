@@ -60,13 +60,16 @@ const noopReducer = files => {
 screenshot
   .makeStills(glob, VIDEO_FOLDER, STILLS_FOLDER, num, 0.2, 0.8, [])
   .then(async files => {
-    const tweeted = await dropbox.getTweetedFiles();
-    const reducers = [
-      {
+    const reducers = [];
+
+    if (dropbox.canConnect()) {
+      const posted = await dropbox.getPostedFiles();
+      reducers.push({
         name: 'dupes',
-        fn: makeReduceAwayDupes(_.map(tweeted, 'name'))
-      }
-    ];
+        fn: makeReduceAwayDupes(_.map(posted, 'name'))
+      });
+    }
+
     if (faces) {
       const makeProcessFaces = require('../lib/screenshot/make-process-faces');
       reducers.push({
@@ -97,8 +100,10 @@ screenshot
       console.log(`\n🐎 Running reducer: ${reducer.name}`);
       files = await reducer.fn(files);
       if (!Array.isArray(files)) {
-        console.log(`Yo, your reducer (${reducer.name}) must return an array`);
-        console.log('Instead I got:', files);
+        console.log(
+          `👿 Yo, your reducer (${reducer.name}) must return an array`
+        );
+        console.log('👿 Instead I got:', files);
         process.exit(1);
       }
       deleteReduced(originalFiles, files);
@@ -106,5 +111,5 @@ screenshot
     }
   })
   .catch(err => {
-    console.log('Could not make stills!', err);
+    console.log('😡 Could not make stills!', err);
   });

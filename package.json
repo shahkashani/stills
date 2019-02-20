@@ -1,7 +1,7 @@
 {
   "name": "stills",
-  "version": "1.0.2",
-  "description": "Stills Tweetbot",
+  "version": "2.0.0",
+  "description": "Stills Machine",
   "main": "index.js",
   "repository": {
     "type": "git",
@@ -9,7 +9,7 @@
   },
   "bin": {
     "connect": "bin/connect.js",
-    "tweet": "bin/tweet.js",
+    "post": "bin/post.js",
     "stills": "bin/stills.js",
     "gifs": "bin/gifs.js",
     "upload": "bin/upload.js",
