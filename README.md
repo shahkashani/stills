@@ -2,28 +2,15 @@
 
 ![A Fieri Frame](https://66.media.tumblr.com/9b2fc56a82f38194079d9aead9a4ad31/tumblr_pn6vnuPwrO1y72ak6o1_1280.png)
 
-A lil' library to help you create a stills generator.
+A lil' util to help you create a stills generator.
 
 ## Setup
 
-This project is a library.
+This project is sort of a weird command-line library.
 
-Create your own project and make this a dependency, i.e.:
+Create your own project and make this a dependency, i.e. `npm init && npm install https://github.com/shahkashani/stills.git`
 
-```{
-  "name": "fieriframes",
-  "version": "1.0.0",
-  "description": "Guy Fieri Frames",
-  "engines": {
-    "node": "10.x"
-  },
-  "dependencies": {
-    "stills": "git+https://github.com/shahkashani/stills.git"
-  }
-}
-```
-
-_In your own project_, you'll need three folders in your project:
+_In your own project_, you'll need three folders:
 
 - `videos/` - where the source material will live. Can basically be any video format.
 - `stills/` - where all the stills will end up
