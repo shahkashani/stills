@@ -2,39 +2,31 @@
 require('dotenv').config();
 
 const path = require('path');
-const fs = require('fs');
-const fr = require('face-recognition');
-const detector = fr.FaceDetector();
-const recognizer = fr.FaceRecognizer();
 const glob = require('glob');
+const { trainFaces, saveDescriptors } = require('../lib/face-detection');
 
-const INPUT_FOLDER = path.resolve('./train');
-const OUTPUT_FOLDER = path.resolve('./faces');
+const BASE_FOLDER = path.resolve('./faces');
 
 const argv = require('yargs')
   .usage('Usage: $0 <command> [options]')
-  .default('name', 'face').argv;
+  .describe(
+    'name',
+    'The name of the subfolder inside ./faces where the training images are'
+  )
+  .require('name').argv;
 
-const processFaces = async () => {
-  const name = argv.name;
-  const inputs = glob.sync(`${INPUT_FOLDER}/*.png`);
-  const output = `${OUTPUT_FOLDER}/${name}.json`;
-  console.log(`💪 Trainin "${name}"...'`);
+const processFaces = async name => {
+  const outputFile = `${BASE_FOLDER}/${name}.json`;
 
-  const faces = inputs.reduce((memo, input) => {
-    const image = fr.loadImage(input);
-    const faceRects = detector.locateFaces(image).map(res => res.rect);
-    if (faceRects) {
-      const faces = detector.getFacesFromLocations(image, faceRects, 150);
-      memo.push(faces[0]);
-    }
-    return memo;
-  }, []);
+  const files = glob.sync(`${BASE_FOLDER}/${name}/*.{jpg,png}`);
 
-  recognizer.addFaces(faces, name);
+  console.log(`💪 Training model ${name}...`);
 
-  const modelState = recognizer.serialize();
-  fs.writeFileSync(output, JSON.stringify(modelState));
+  const descriptors = await trainFaces(files);
+
+  console.log(`💾 Saving ${path.basename(outputFile)}...`);
+
+  saveDescriptors(outputFile, descriptors);
 };
 
-processFaces();
+processFaces(argv.name);

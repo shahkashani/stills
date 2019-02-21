@@ -21,8 +21,11 @@
   "author": "Shah Kashani",
   "license": "ISC",
   "dependencies": {
+    "@tensorflow/tfjs-node": "^0.3.0",
+    "canvas": "^2.3.1",
     "dotenv": "^4.0.0",
     "dropbox": "^2.5.12",
+    "face-api.js": "^0.18.0",
     "glob": "^7.1.2",
     "lodash": "^4.17.10",
     "parse-srt": "^1.0.0-alpha",
