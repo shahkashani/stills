@@ -34,7 +34,5 @@
     "twitter": "^1.7.1",
     "yargs": "^13.2.0"
   },
-  "devDependencies": {
-    "face-recognition": "^0.9.4"
-  }
+  "devDependencies": {}
 }
