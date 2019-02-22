@@ -10,13 +10,52 @@ This project is sort of a weird command-line library.
 
 Create your own project and make this a dependency, i.e. `npm init && npm install https://github.com/shahkashani/stills.git`
 
+For inspiration and example setup, check out the [fieriframes bot](https://github.com/shahkashani/fieriframes/).
+
 _In your own project_, you'll need three folders:
 
 - `videos/` - where the source material will live. Can basically be any video format.
 - `stills/` - where all the stills will end up
 - `gifs/` - where all the gifs will end up
 
-If you're just _generating_ stills, skip the next part and go straight to `Commands`!
+Below is a list of commands. You'll need `./node_modules/.bin` in your path, or just prepend that to every command.
+
+## Generating stills? Here's all you need
+
+I usually run these wherever I keep the videos, i.e. my personal computer.
+
+### `stills`
+
+Create stills from `videos` folder into `stills` folder. Run `stills --help` for more info.
+
+#### Detecting and training faces
+
+If you ran `stills --help`, you'll note there's a `--faces` options. This will, out of the box, work for faces! If all you care about is _any_ face, then just stop here.
+
+However, if you're looking for _specific_ faces, you're gonna have to train it to detect them. Thankfully, that's super easy.
+
+1. In your project, create a `faces` folder.
+1. Make a subfolder and name it to match the person you're training, e.g. `faces/fieri`. Put a bunch of images in here of that person. It does _not_ have to be close-ups, but make sure your person is the only one in the image.
+1. Run `train --name=fieri`. This will create a file called `faces/fieri.json`.
+1. That's it. Next time you run `stills --faces=10`, it'll make sure 10% of images contain this `fieri` person.
+
+#### Adding captions
+
+1. Put a bunch of SRT files into a folder called `captions`
+1. Run `stills --captions=10` or whatever percentage you want
+1. For 10% of images, this will pick a random caption from one of your SRT files. Bonkers.
+
+### `gifs`
+
+Same as `stills`, but creates GIFs in a `gifs` folder. Run `gifs --help` for more info
+
+### `upload`
+
+Upload whatever is in `./gifs` and `./stills` to Dropbox.
+
+## Posting stills? You'll wanna read this
+
+### Setup
 
 If you're _posting_ stills, you'll need the following things in either an `.env` file or as environment variables:
 
@@ -41,36 +80,12 @@ You're also gonna need to do the following in Dropbox as a one-time step:
 1. A folder where the stills live, e.g. `/stills` (specify the name in the `DROPBOX_FOLDER` field in `.env`)
 2. An empty JSON file called `<name>.json`, e.g. `/stills.json`, where all the posted images will be registered. It'll live at the same level as the folder. Start by just uploading a file with the contents `[]`.
 
-## Commands
+OK, now onto the commands. I run these on a cron on Heroku.
 
-Below is a list of commands. You'll need `./node_modules/.bin` in your path, or just prepend that to every command.
-
-### Generating stills? Here's what you need.
-
-I usually run these wherever I keep the videos, i.e. my personal computer.
-
-#### `stills`
-
-Create stills from `videos` folder into `stills` folder. Run `stills --help` for more info.
-
-`stills` has a lot of weird parameters. If you need docs for how to train faces, etc., holla at me and I'll fill out this doc.
-
-#### `gifs`
-
-Same as `stills`, but creates GIFs in a `gifs` folder. Run `gifs --help` for more info
-
-#### `upload`
-
-Upload whatever is in `./gifs` and `./stills` to Dropbox.
-
-### Posting stills? You'll want these commands.
-
-I run these commands on a cron on Heroku:
-
-#### `connect`
+### `connect`
 
 Check the connection with Twitter and Dropbox. Good for validating the `.env` file.
 
-#### `post`
+### `post`
 
 Connects to Dropbox and posts a still, and updates the JSON file with the image name and the live URL(s).
