@@ -30,7 +30,7 @@ if (captions) {
       captionsFolder: CAPTIONS_FOLDER,
       minCaptions: captions / 100,
       numCaptions: 2,
-      fontSize: 20
+      fontSize: 25
     })
   );
 }
