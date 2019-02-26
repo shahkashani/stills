@@ -6,6 +6,12 @@ const twitter = require('../lib/twitter');
 const tumblr = require('../lib/tumblr');
 const path = require('path');
 
+const argv = require('yargs')
+  .usage('Usage: $0 <command> [options]')
+  .describe('tag', 'Tag to add to the post (can be multiple)').argv;
+
+const { tag } = argv;
+
 console.log(`📦 Serving up artisanal stills...`);
 
 dropbox
@@ -16,6 +22,7 @@ dropbox
     const matches = basename.match(/(.*) @ (.*)$/);
     const episodeName = matches[1];
     const postData = {};
+    const tags = Array.isArray(tag) ? tag : [tag];
 
     if (twitter.canConnect()) {
       try {
@@ -32,11 +39,11 @@ dropbox
 
     if (tumblr.canConnect()) {
       try {
-        const tumblrURL = await tumblr.post(binary, episodeName);
+        const tumblrURL = await tumblr.post(binary, [episodeName, ...tags]);
         console.log('👏 That still made it to Tumblr just fine', tumblrURL);
         postData.tumblr = tumblrURL;
       } catch (err) {
-        console.log('😓 Did not post to Tumblr:', error);
+        console.log('😓 Did not post to Tumblr:', err);
       }
     }
 
