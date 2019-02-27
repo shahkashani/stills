@@ -30,8 +30,7 @@ if (captions) {
   plugins.push(
     new CaptionsPlugin({
       captionsFolder: CAPTIONS_FOLDER,
-      minCaptions: captions / 100,
-      numCaptions: 2
+      minCaptions: captions / 100
     })
   );
 }
