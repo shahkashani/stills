@@ -1,31 +1,26 @@
 {
   "name": "stills",
-  "version": "2.0.0",
-  "description": "Stills Machine",
+  "version": "3.0.0",
+  "description": "A stills and GIF bot",
   "main": "index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/shahkashani/stills"
   },
   "bin": {
-    "connect": "bin/connect.js",
-    "post": "bin/post.js",
-    "stills": "bin/stills.js",
-    "gifs": "bin/gifs.js",
-    "upload": "bin/upload.js",
-    "train": "bin/train.js"
+    "train-faces": "bin/train-faces.js"
   },
   "engines": {
     "node": "10.x"
   },
   "author": "Shah Kashani",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "@tensorflow/tfjs-node": "^0.3.0",
+    "aws-sdk": "^2.411.0",
     "byebyte": "^2.0.0",
     "canvas": "^2.3.1",
     "dotenv": "^4.0.0",
-    "dropbox": "^2.5.12",
     "face-api.js": "^0.18.0",
     "glob": "^7.1.2",
     "lodash": "^4.17.10",
@@ -34,6 +29,5 @@
     "tumblr.js": "^1.1.1",
     "twitter": "^1.7.1",
     "yargs": "^13.2.0"
-  },
-  "devDependencies": {}
+  }
 }
