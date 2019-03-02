@@ -188,7 +188,7 @@ For this to work, you have to first train the generator to recognize the face(s)
 
 1. Find a bunch of images (~10) with the person in them and put them in a folder (e.g. `face-training`). It does _not_ have to be close-ups; ideally it's stills from the actual videos you're using. Make sure there are no other people in these images.
 1. Create a folder for the model to be saved in (e.g. `faces`).
-1. `./node_modules/bin/train-faces -i face-training -o faces --name "Name of the person"`
+1. `./node_modules/.bin/train-faces -i face-training -o faces --name "Name of the person"`
 1. This will eventually generate a file called `faces/name-of-the-person.json`. Success!
 1. You can delete the `face-training` folder now if you want.
 
