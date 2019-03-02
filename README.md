@@ -184,21 +184,23 @@ new stills.validators.FaceDetection();
 
 ### Face recognition
 
-For this to work, you have to first train the generator to recognize the face(s).
-
-1. Find a bunch of images (~10) with the person in them and put them in a folder (e.g. `face-training`). It does _not_ have to be close-ups; ideally it's stills from the actual videos you're using. Make sure there are no other people in these images.
-1. Create a folder for the model to be saved in (e.g. `faces`).
-1. `./node_modules/.bin/train-faces -i face-training -o faces --name "Name of the person"`
-1. This will eventually generate a file called `faces/name-of-the-person.json`. Success!
-1. You can delete the `face-training` folder now if you want.
-
-Repeat this for all the people you want to recognize in images and the validator will make sure at least one of them is present.
+The `folder` should point to wherever you're keeping the face descriptors.
 
 ```javascript
 new stills.validators.FaceRecognition({
   folder: resolve('./faces')
 });
 ```
+
+What's a face descriptor, you ask? It's a JSON file that describes the face you're trying to match. Below is how you generate it.
+
+1. Find a bunch of images (~10) with the person in them and put them in a folder (e.g. `face-training`). Make sure there are no other people in these images. It does _not_ have to be close-ups -- ideally it's stills from the actual videos you're using.
+1. Create a folder for the descriptor file to be saved in (e.g. `faces`).
+1. `./node_modules/.bin/train-faces -i face-training -o faces --name "Name of the person"`
+1. This will eventually generate `faces/name-of-the-person.json`. Success!
+1. You can delete the `face-training` folder now if you want.
+
+Repeat this for all the people you'd like to match and the validator will make sure at least one of them is present in the image generated.
 
 # Bye!
 
