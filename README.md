@@ -121,11 +121,12 @@ This filter supports reading random `.srt` files (movie subtitles) and `.txt` fi
 ```javascript
 new stills.filters.Captions({
   folder: resolve('./captions'),
+  font: resolve('./fonts/maison.ttf')
   num: 2
 });
 ```
 
-The `num` parameter (default: `2`) is only applicable to GIFs; it determines how many captions to apply, distributed evenly based on the GIF duration.
+The `num` parameter (default: `2`) is only applicable to GIFs; it determines how many captions to apply, distributed evenly based on the GIF duration. The `font` parameter is a path to a font file (default: `null`, will use Arial).
 
 ### Glitches
 
