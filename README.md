@@ -103,12 +103,13 @@ new stills.content.Still();
 
 ### GIFs
 
-Most sites have some upper limit on GIF sizes, so you can adjust either the generated image `width` (default: `540`) or the `duration` (default: `2`) to fit your needs.
+Most sites have some upper limit on GIF sizes, so you can adjust either the generated image `width` (default: `540`), the `duration` (default: `2`) or the frame-rate with `fps` (default: `12`) to fit your needs.
 
 ```javascript
 new stills.content.Gif({
   width: 540,
-  duration: 2
+  duration: 2,
+  fps: 12
 });
 ```
 
