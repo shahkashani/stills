@@ -122,13 +122,20 @@ This filter supports reading random `.srt` files (movie subtitles) and `.txt` fi
 ```javascript
 new stills.filters.Captions({
   folder: resolve('./captions'),
-  font: resolve('./fonts/maison.ttf')
   num: 2,
-  bgColor: null
+  isSequential: false,
+  font: resolve('./fonts/maison.ttf')
+  background: null,
 });
 ```
 
-The `num` parameter (default: `2`) is only applicable to GIFs; it determines how many captions to apply, distributed evenly based on the GIF duration. The `font` parameter is a path to a font file (default: `null`, will use Arial). You can also optionally pass in a hex or rgba color value into `bgColor` (default: `null`) which will be added under the text (instead of applying a black drop-shadow).
+The parameters:
+
+- `folder` (mandatory) is the location from which the subtitles files will be loaded.
+- `num` (default: `2`) is only applicable to GIFs; it determines how many captions to apply, distributed evenly based on the GIF duration.
+- `isSequential` (default: `false`) is relevant when `num > 1`, determines whether the randomly picked captions are be sequential.
+- `font` (default: `null`) is a path to a font file, will use Arial if nothing is provided.
+- `background` (default: `null`) is an optional hex rgba color that will be added under the text, will use a text drop-shadow if nothing is provided.
 
 ### Glitches
 
