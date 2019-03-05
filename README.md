@@ -137,13 +137,26 @@ The parameters:
 - `font` (default: `null`) is a path to a font file, will use Arial if nothing is provided.
 - `background` (default: `null`) is an optional hex rgba color that will be added under the text, will use a text drop-shadow if nothing is provided.
 
-### Glitches
+### Glitch
 
 Destroys your content by mangling random bytes (default: `300`).
 
 ```javascript
 new stills.filters.Glitch({
   bytes: 300
+});
+```
+
+### Distortion
+
+Stretches your image; for a still, it will immediately apply the stretch, for a GIF, it will increasingly apply the transformation during the course of the animation.
+
+`widthFactor` and `heightFactor` should be 0-1; the higher the number, the more it streches the image in that direction.
+
+```javascript
+new stills.filters.Distortion({
+  heightFactor: 0.6
+  widthFactor: 0
 });
 ```
 
