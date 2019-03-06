@@ -160,6 +160,18 @@ new stills.filters.Distortion({
 });
 ```
 
+### Face zoom
+
+Only works with GIFs! Detect a face from the last frame and zooms towards it throughout the GIF. If it can't find a face or if you give it a still image, it does nothing.
+
+```javascript
+new stills.filters.FaceZoom({
+  startPosition: 0.5
+});
+```
+
+By default it starts zooming towards the face half-way through the GIF, but you can adjust that using `startPosition` (0-1).
+
 ## Destinations
 
 ### Tumblr
