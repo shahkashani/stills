@@ -166,11 +166,12 @@ Only works with GIFs! Detect a face from the last frame and zooms towards it thr
 
 ```javascript
 new stills.filters.FaceZoom({
-  startPosition: 0.5
+  startPosition: 0.5,
+  lastFrameDelayMs: null
 });
 ```
 
-By default it starts zooming towards the face half-way through the GIF, but you can adjust that using `startPosition` (0-1).
+By default it starts zooming towards the face half-way through the GIF, but you can adjust that using `startPosition` (0-1). You can also add a delay (in ms) to the last zoomed in frame with `lastFrameDelayMs` (default: `null`)
 
 ## Destinations
 
