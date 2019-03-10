@@ -122,7 +122,7 @@ This filter supports reading random `.srt` files (movie subtitles) and `.txt` fi
 ```javascript
 new stills.filters.Captions({
   folder: resolve('./captions'),
-  num: 2,
+  num: 1,
   isSequential: false,
   font: resolve('./fonts/maison.ttf')
   background: null,
@@ -132,7 +132,7 @@ new stills.filters.Captions({
 The parameters:
 
 - `folder` (mandatory) is the location from which the subtitles files will be loaded.
-- `num` (default: `2`) is only applicable to GIFs; it determines how many captions to apply, distributed evenly based on the GIF duration.
+- `num` (default: `1`) is only applicable to GIFs; it determines how many captions to apply, distributed evenly based on the GIF duration.
 - `isSequential` (default: `false`) is relevant when `num > 1`, determines whether the randomly picked captions are be sequential.
 - `font` (default: `null`) is a path to a font file, will use Arial if nothing is provided.
 - `background` (default: `null`) is an optional hex rgba color that will be added under the text, will use a text drop-shadow if nothing is provided.
