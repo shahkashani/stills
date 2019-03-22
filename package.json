@@ -18,6 +18,7 @@
   "dependencies": {
     "@tensorflow/tfjs-node": "^0.3.0",
     "aws-sdk": "^2.411.0",
+    "brevity": "^0.2.9",
     "byebyte": "^2.0.0",
     "canvas": "^2.3.1",
     "dotenv": "^4.0.0",

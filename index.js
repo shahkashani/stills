@@ -23,9 +23,12 @@ const generate = async ({
   content,
   filters = [],
   destinations = [],
-  validators = []
+  validators = [],
+  getPostText = null
 } = {}) => {
   const { input, output } = await source.get();
+  const filterOutput = {};
+
   let isValid = false;
   let image = null;
 
@@ -45,12 +48,21 @@ const generate = async ({
 
   for (const filter of filters) {
     console.log(`\n🎨 Apply filter ${filter.name}`);
-    await filter.apply(image);
+    filterOutput[filter.name] = await filter.apply(image);
+  }
+
+  let postText;
+  if (getPostText) {
+    console.log('\n🎁 Generating caption');
+    postText = await getPostText(filterOutput);
   }
 
   for (const destination of destinations) {
     console.log(`\n🚀 Publishing to ${destination.name}`);
-    const url = await destination.publish(image, { tags: [output] });
+    const url = await destination.publish(image, {
+      text: postText,
+      tags: [output]
+    });
     console.log(`👀 Go check it out at ${url}`);
   }
 

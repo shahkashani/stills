@@ -42,6 +42,7 @@ const config = {
     })
   ],
   validators: [new validators.FaceDetection()],
+  getPostText: filterOutput => (filterOutput.captions || []).join('\n'),
   destinations: [
     new destinations.Tumblr({
       consumerKey: TUMBLR_CONSUMER_KEY,
@@ -186,7 +187,9 @@ new stills.destinations.Tumblr({
   token: TUMBLR_ACCESS_TOKEN_KEY,
   tokenSecret: TUMBLR_ACCESS_TOKEN_SECRET,
   blogName: TUMBLR_BLOG_NAME,
-  tags: ['Hello']
+  tags: ['Hello'],
+  isIncludeText: true,
+  },
 });
 ```
 
@@ -201,9 +204,14 @@ new stills.destinations.Twitter({
   consumerKey: TWITTER_CONSUMER_KEY,
   consumerSecret: TWITTER_CONSUMER_SECRET,
   accessTokenKey: TWITTER_ACCESS_TOKEN_KEY,
-  accessTokenSecret: TWITTER_ACCESS_TOKEN_SECRET
+  accessTokenSecret: TWITTER_ACCESS_TOKEN_SECRET,
+  isIncludeText: true
 });
 ```
+
+### Post text captions
+
+You can add some text to the Tumblr and Twitter posts if you set `isIncludeText` to `true` in each individual destination, and pass in a `getPostText` method into the `generate` call. An object will be passed into `getPostText` method with the output from the various filters that are applied (key is the name of the filter).
 
 ## Validators
 
