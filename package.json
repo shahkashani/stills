@@ -26,11 +26,13 @@
     "glob": "^7.1.2",
     "lodash": "^4.17.10",
     "parse-srt": "^1.0.0-alpha",
+    "readimage": "^1.1.1",
     "shelljs": "^0.7.8",
     "text2png": "^2.1.0",
     "tumblr.js": "^1.1.1",
     "twitter": "^1.7.1",
     "wordwrap": "^1.0.0",
+    "writegif": "^1.1.0",
     "yargs": "^13.2.0"
   }
 }
