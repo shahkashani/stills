@@ -174,6 +174,22 @@ new stills.filters.FaceZoom({
 
 By default it starts zooming towards the face half-way through the GIF, but you can adjust that using `startPosition` (0-1). You can also add a delay (in ms) to the last zoomed in frame with `lastFrameDelayMs` (default: `null`)
 
+### Melt
+
+Applies a "max" between frames in your image, essentially leading it towards blacks and making it look like it's melting. No options.
+
+```javascript
+new stills.filters.Melt();
+```
+
+### Twin Peaks Sheriff's Station
+
+If you watched Twin Peaks - The Return, you might be able to guess what this does. If not, I guess just try it and see what happens.
+
+```javascript
+new stills.filters.Station();
+```
+
 ## Destinations
 
 ### Tumblr
