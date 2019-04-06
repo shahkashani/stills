@@ -198,6 +198,30 @@ Shuffle the frames in a GIF.
 new stills.filters.Shuffle();
 ```
 
+### Stutter
+
+Stutter a bunch of frames in a GIF. Turns normal frames like this:
+
+1 2 3 4 5 6 7 8 9
+
+to this:
+
+1 2 _3 4 3 4 3 4_ 9
+
+```javascript
+new stills.filters.Stutter({
+  startFrame: null,
+  numFrames: 6,
+  stutterLength: 2,
+  stutterDelay: null
+});
+```
+
+- `startFrame`: where to start stuttering. Picks a random frame if `null`.
+- `numFrames`: number of frames to stutter for / replace with stutter.
+- `stutterLength`: number of frames to repeat. The above example with 3 would look like "1 2 _3 4 5 3 4 5_ 8 9"
+- `stutterDelay`: delay of the stuttered frame in ms. Will just use the original delay if `null`.
+
 ## Destinations
 
 ### Tumblr

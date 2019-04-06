@@ -47,7 +47,7 @@ const generate = async ({
   }
 
   for (const filter of filters) {
-    console.log(`\n🎨 Apply filter ${filter.name}`);
+    console.log(`\n🎨 Applying filter ${filter.name}`);
     filterOutput[filter.name] = await filter.apply(image);
   }
 
