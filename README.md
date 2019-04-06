@@ -190,6 +190,14 @@ If you watched Twin Peaks - The Return, you might be able to guess what this doe
 new stills.filters.Station();
 ```
 
+### Shuffle
+
+Shuffle the frames in a GIF.
+
+```javascript
+new stills.filters.Shuffle();
+```
+
 ## Destinations
 
 ### Tumblr
