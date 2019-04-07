@@ -1,4 +1,5 @@
 const { unlinkSync } = require('fs');
+
 const MAX_GENERATION_ATTEMPTS = 10;
 
 const validate = async (image, validators) => {
@@ -21,54 +22,77 @@ const validate = async (image, validators) => {
 const generate = async ({
   source,
   content,
+  image = null,
   filters = [],
   destinations = [],
   validators = [],
-  getPostText = null
+  getPostText = null,
+  deleteAfterPosting = true
 } = {}) => {
-  const { input, output } = await source.get();
-  const filterOutput = {};
+  const result = {
+    filters: {},
+    destinations: {},
+    source: null,
+    content: null
+  };
 
-  let isValid = false;
-  let image = null;
-
-  for (let i = 0; !isValid && i < MAX_GENERATION_ATTEMPTS; i++) {
-    image = content.generate(input, output);
-    isValid = await validate(image, validators);
-    if (!isValid) {
-      unlinkSync(image);
-      image = null;
-    }
-  }
+  const tags = [];
 
   if (!image) {
-    console.log('\n🤷 Giving up on the validators, sorry!');
-    image = content.generate(input, output);
+    const sourceResult = await source.get();
+    const { input, output } = sourceResult;
+    result.source = sourceResult;
+
+    let isValid = false;
+
+    for (let i = 0; !isValid && i < MAX_GENERATION_ATTEMPTS; i++) {
+      image = content.generate(input, output);
+      isValid = await validate(image, validators);
+      if (!isValid) {
+        unlinkSync(image);
+        image = null;
+      }
+    }
+
+    if (!image) {
+      console.log('\n🤷 Giving up on the validators, sorry!');
+      image = content.generate(input, output);
+    }
+
+    tags.push(output);
   }
+
+  result.content = image;
 
   for (const filter of filters) {
     console.log(`\n🎨 Applying filter ${filter.name}`);
-    filterOutput[filter.name] = await filter.apply(image);
+    const filterResult = await filter.apply(image);
+    if (filterResult) {
+      result.filters[filter.name] = filterResult;
+    }
   }
 
-  let postText;
-  if (getPostText) {
-    console.log('\n🎁 Generating caption');
-    postText = await getPostText(filterOutput);
-  }
+  const postText = getPostText ? getPostText(result) : null;
 
   for (const destination of destinations) {
     console.log(`\n🚀 Publishing to ${destination.name}`);
-    const url = await destination.publish(image, {
-      text: postText,
-      tags: [output]
+    const response = await destination.publish(image, {
+      tags,
+      text: postText
     });
-    console.log(`👀 Go check it out at ${url}`);
+    if (response) {
+      result.destinations[destination.name] = response;
+    }
+    console.log(
+      `👀 Go check it out at ${'url' in response ? response.url : response}`
+    );
   }
 
-  if (destinations.length > 0) {
+  if (destinations.length > 0 && deleteAfterPosting) {
     unlinkSync(image);
   }
+
+  return result;
 };
 
 module.exports = {
