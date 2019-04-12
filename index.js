@@ -1,4 +1,5 @@
 const { unlinkSync } = require('fs');
+const { uniq, compact, map } = require('lodash');
 
 const MAX_GENERATION_ATTEMPTS = 10;
 
@@ -26,8 +27,7 @@ const generate = async ({
   filters = [],
   destinations = [],
   validators = [],
-  getPostText = null,
-  deleteAfterPosting = true
+  getPostText = null
 } = {}) => {
   const result = {
     filters: {},
@@ -87,16 +87,35 @@ const generate = async ({
       `👀 Go check it out at ${'url' in response ? response.url : response}`
     );
   }
-
-  if (destinations.length > 0 && deleteAfterPosting) {
-    unlinkSync(image);
-  }
-
   return result;
+};
+
+const generateChain = async configs => {
+  const results = [];
+  let lastResult = null;
+  for (let config of configs) {
+    if (typeof config === 'function') {
+      config = await config(lastResult, results);
+    }
+    lastResult = config ? await generate(config) : null;
+    results.push(lastResult);
+  }
+  return results;
+};
+
+const deleteStills = results => {
+  const files = Array.isArray(results)
+    ? uniq(compact(map(results, 'content')))
+    : [results.content];
+  files.forEach(file => {
+    unlinkSync(file);
+  });
 };
 
 module.exports = {
   generate,
+  generateChain,
+  deleteStills,
   filters: require('./lib/filters'),
   sources: require('./lib/sources'),
   content: require('./lib/content'),

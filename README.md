@@ -68,6 +68,29 @@ This will generate a random still from your S3 bucket, make sure at least one fa
 
 There are other options for `source`, `content` and `validators`. Keep readin'.
 
+## Generate multiple
+
+In all likelihood you'll never use this, but if you're doing more advanced things, like posting multiple images in a single one run, or immediately reblogging the post with a different caption, you can use `generateChain`. This allowa you to execute multiple configs in a series. The configs can either be simple config objects like the standard case above, or a function that returns a config object.
+
+```javascript
+await generateChain([
+  firstConfig,
+  (previousResult, allPreviousResults) => {
+    return secondConfig;
+  }
+]);
+```
+
+The `previousResult` parameter passed in is the result of the previous run, which is essentially just whatever the filters return. Can sometimes come in handy. Example `previousResult`:
+
+```json
+{
+  "filters": {
+    "captions": ["Welcome to Flavortown!", "Please stay a while"]
+  }
+}
+```
+
 ## Sources
 
 ### Local folder
