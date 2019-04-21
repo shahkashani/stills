@@ -70,19 +70,23 @@ const generate = async ({
 
   const tags = [];
 
-  for (const tagger of taggers) {
-    const taggerResult = await tagger.get(result);
-    if (Array.isArray(taggerResult)) {
-      result.taggers[tagger.name] = taggerResult;
-      console.log(
-        `🏷️  Tagging using ${tagger.name}: ${taggerResult.join(', ')}`
-      );
-      tags.push.apply(tags, taggerResult);
-    } else {
-      console.log(
-        `🤷 Tagger ${tagger.name} did not return an array:`,
-        taggerResult
-      );
+  if (destinations.length > 0) {
+    for (const tagger of taggers) {
+      const taggerResult = await tagger.get(result);
+      if (Array.isArray(taggerResult)) {
+        result.taggers[tagger.name] = taggerResult;
+        if (taggerResult.length > 0) {
+          console.log(
+            `🏷️  Tagging using ${tagger.name}: ${taggerResult.join(', ')}`
+          );
+          tags.push.apply(tags, taggerResult);
+        }
+      } else {
+        console.log(
+          `🤷 Tagger ${tagger.name} did not return an array:`,
+          taggerResult
+        );
+      }
     }
   }
 
