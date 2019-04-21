@@ -24,6 +24,8 @@
     "face-api.js": "^0.18.0",
     "gif-composites": "^1.0.0",
     "glob": "^7.1.2",
+    "imagemin": "^6.1.0",
+    "imagemin-giflossy": "^5.1.10",
     "lodash": "^4.17.10",
     "parse-srt": "^1.0.0-alpha",
     "readimage": "^1.1.1",

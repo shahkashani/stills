@@ -87,6 +87,7 @@ const generate = async ({
       `👀 Go check it out at ${'url' in response ? response.url : response}`
     );
   }
+
   return result;
 };
 
