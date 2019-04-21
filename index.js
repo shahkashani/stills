@@ -27,16 +27,16 @@ const generate = async ({
   filters = [],
   destinations = [],
   validators = [],
+  taggers = [],
   getPostText = null
 } = {}) => {
   const result = {
     filters: {},
     destinations: {},
+    taggers: {},
     source: null,
     content: null
   };
-
-  const tags = [];
 
   if (!image) {
     const sourceResult = await source.get();
@@ -53,26 +53,38 @@ const generate = async ({
         image = null;
       }
     }
-
     if (!image) {
       console.log('\n🤷 Giving up on the validators, sorry!');
       image = content.generate(input, output);
     }
-
-    tags.push(output);
   }
 
   result.content = image;
 
   for (const filter of filters) {
     console.log(`\n🎨 Applying filter ${filter.name}`);
-    const filterResult = await filter.apply(image);
-    if (filterResult) {
-      result.filters[filter.name] = filterResult;
-    }
+    result.filters[filter.name] = await filter.apply(image);
   }
 
   const postText = getPostText ? getPostText(result) : null;
+
+  const tags = [];
+
+  for (const tagger of taggers) {
+    const taggerResult = await tagger.get(result);
+    if (Array.isArray(taggerResult)) {
+      result.taggers[tagger.name] = taggerResult;
+      console.log(
+        `🏷️  Tagging using ${tagger.name}: ${taggerResult.join(', ')}`
+      );
+      tags.push.apply(tags, taggerResult);
+    } else {
+      console.log(
+        `🤷 Tagger ${tagger.name} did not return an array:`,
+        taggerResult
+      );
+    }
+  }
 
   for (const destination of destinations) {
     console.log(`\n🚀 Publishing to ${destination.name}`);
@@ -121,5 +133,6 @@ module.exports = {
   sources: require('./lib/sources'),
   content: require('./lib/content'),
   destinations: require('./lib/destinations'),
-  validators: require('./lib/validators')
+  validators: require('./lib/validators'),
+  taggers: require('./lib/taggers')
 };

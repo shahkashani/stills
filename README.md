@@ -25,7 +25,8 @@ const {
   filters,
   destinations,
   validators,
-  generate
+  generate,
+  taggers
 } = require('stills');
 const { resolve } = require('path');
 
@@ -43,6 +44,13 @@ const config = {
   ],
   validators: [new validators.FaceDetection()],
   getPostText: filterOutput => (filterOutput.captions || []).join('\n'),
+  taggers: [
+    new taggers.Episode(),
+    new taggers.Static({
+      tags: ['Hello']
+    }),
+    new taggers.Captions()
+  ],
   destinations: [
     new destinations.Tumblr({
       consumerKey: TUMBLR_CONSUMER_KEY,
@@ -244,6 +252,38 @@ new stills.filters.Stutter({
 - `numFrames`: number of frames to stutter for / replace with stutter.
 - `stutterLength`: number of frames to repeat. The above example with 3 would look like "1 2 _3 4 5 3 4 5_ 8 9"
 - `stutterDelay`: delay of the stuttered frame in ms. Will just use the original delay if `null`.
+
+## Taggers
+
+Taggers help assemble the list of tags that are added to posts when sent to destinations.
+
+(Destinations may choose to ignore these tags (currently, the Twitter destination ignores, while Tumblr uses the tags))
+
+### Episode
+
+```javascript
+new taggers.Episode();
+```
+
+Passes the name of the input file (from your `source`) as a tag.
+
+### Static
+
+```javascript
+new taggers.Static({
+  tags: ['Hello']
+});
+```
+
+Simply passes along whatever you specify in `tags`.
+
+### Captions
+
+```javascript
+new taggers.Captions();
+```
+
+If you've used the caption filter, it'll extract nouns and other tag-friendly words to use as tags.
 
 ## Destinations
 
