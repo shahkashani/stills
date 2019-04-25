@@ -30,6 +30,7 @@
     "imagemin-giflossy": "^5.1.10",
     "lodash": "^4.17.10",
     "parse-srt": "^1.0.0-alpha",
+    "pixelmatch": "^4.0.2",
     "readimage": "^1.1.1",
     "shelljs": "^0.7.8",
     "text2png": "^2.1.0",
