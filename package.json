@@ -28,7 +28,7 @@
     "glob": "^7.1.2",
     "imagemin": "^6.1.0",
     "imagemin-giflossy": "^5.1.10",
-    "lodash": "^4.17.10",
+    "lodash": "^4.17.14",
     "parse-srt": "^1.0.0-alpha",
     "pixelmatch": "^4.0.2",
     "readimage": "^1.1.1",
