@@ -28,6 +28,7 @@ const generate = async ({
   destinations = [],
   validators = [],
   taggers = [],
+  description = null,
   getPostText = null
 } = {}) => {
   const result = {
@@ -61,12 +62,32 @@ const generate = async ({
 
   result.content = image;
 
+  let text = null;
+
+  if (description) {
+    console.log(`\n📯 Generating description with ${description.name}`);
+    text = await description.get(image);
+    if (text) {
+      console.log(`🎉 Got description: ${text}`);
+    }
+  }
+
   for (const filter of filters) {
     console.log(`\n🎨 Applying filter ${filter.name}`);
     result.filters[filter.name] = await filter.apply(image);
   }
 
-  const postText = getPostText ? getPostText(result) : null;
+  if (text && Array.isArray(result.filters['captions'])) {
+    // @todo: Find some way to not reference captions directly here
+    // perhaps just make captions a system preference and not a filter
+    text = `${text}, caption: ${result.filters['captions']
+      .join(' ')
+      .replace(/\n/g, ' ')}`;
+  }
+
+  if (text) {
+    text = `[${text}]`;
+  }
 
   const tags = [];
 
@@ -94,7 +115,7 @@ const generate = async ({
     console.log(`\n🚀 Publishing to ${destination.name}`);
     const response = await destination.publish(image, {
       tags,
-      text: postText
+      text
     });
     if (response) {
       result.destinations[destination.name] = response;
@@ -138,5 +159,6 @@ module.exports = {
   content: require('./lib/content'),
   destinations: require('./lib/destinations'),
   validators: require('./lib/validators'),
-  taggers: require('./lib/taggers')
+  taggers: require('./lib/taggers'),
+  descriptions: require('./lib/descriptions')
 };
