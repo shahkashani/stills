@@ -1,5 +1,6 @@
 const { unlinkSync } = require('fs');
 const { uniq, compact, map } = require('lodash');
+const { getImageInfo } = require('./lib/utils');
 
 const MAX_GENERATION_ATTEMPTS = 10;
 
@@ -28,15 +29,19 @@ const generate = async ({
   destinations = [],
   validators = [],
   taggers = [],
-  description = null,
-  getPostText = null
+  globals = [],
+  description = null
 } = {}) => {
   const result = {
     filters: {},
     destinations: {},
     taggers: {},
+    globals: {},
     source: null,
-    content: null
+    imageInfo: null,
+    tags: [],
+    content: null,
+    description: null
   };
 
   if (!image) {
@@ -62,54 +67,66 @@ const generate = async ({
 
   result.content = image;
 
+  const imageInfo = getImageInfo(image);
+
+  result.imageInfo = imageInfo;
+
+  const globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
+    const memo = await memoFn;
+    console.log(`\n📯 Getting data ${globalsPlugin.name}`);
+    const result = await globalsPlugin.get(image, imageInfo);
+    if (result) {
+      memo[globalsPlugin.name] = result;
+    }
+    return memo;
+  }, Promise.resolve({}));
+
+  console.log('🌍 Globals data:', JSON.stringify(globalsData));
+
+  result.globals = globalsData;
+
   let text = null;
 
   if (description) {
     console.log(`\n📯 Generating description with ${description.name}`);
-    text = await description.get(image);
+    text = await description.get(image, globalsData);
     if (text) {
       console.log(`🎉 Got description: ${text}`);
     }
+
+    result.description = text;
   }
 
   for (const filter of filters) {
     console.log(`\n🎨 Applying filter ${filter.name}`);
-    result.filters[filter.name] = await filter.apply(image);
-  }
-
-  if (text && Array.isArray(result.filters['captions'])) {
-    // @todo: Find some way to not reference captions directly here
-    // perhaps just make captions a system preference and not a filter
-    text = `${text}, caption: ${result.filters['captions']
-      .join(' ')
-      .replace(/\n/g, ' ')}`;
-  }
-
-  if (text) {
-    text = `[${text}]`;
+    result.filters[filter.name] = await filter.apply(
+      image,
+      imageInfo,
+      globalsData
+    );
   }
 
   const tags = [];
 
-  if (destinations.length > 0) {
-    for (const tagger of taggers) {
-      const taggerResult = await tagger.get(result);
-      if (Array.isArray(taggerResult)) {
-        result.taggers[tagger.name] = taggerResult;
-        if (taggerResult.length > 0) {
-          console.log(
-            `🏷️  Tagging using ${tagger.name}: ${taggerResult.join(', ')}`
-          );
-          tags.push.apply(tags, taggerResult);
-        }
-      } else {
+  for (const tagger of taggers) {
+    const taggerResult = await tagger.get(result, globalsData);
+    if (Array.isArray(taggerResult)) {
+      result.taggers[tagger.name] = taggerResult;
+      if (taggerResult.length > 0) {
         console.log(
-          `🤷 Tagger ${tagger.name} did not return an array:`,
-          taggerResult
+          `🏷️  Tagging using ${tagger.name}: ${taggerResult.join(', ')}`
         );
+        tags.push.apply(tags, taggerResult);
       }
+    } else {
+      console.log(
+        `🤷 Tagger ${tagger.name} did not return an array:`,
+        taggerResult
+      );
     }
   }
+
+  result.tags = tags;
 
   for (const destination of destinations) {
     console.log(`\n🚀 Publishing to ${destination.name}`);
@@ -160,5 +177,6 @@ module.exports = {
   destinations: require('./lib/destinations'),
   validators: require('./lib/validators'),
   taggers: require('./lib/taggers'),
-  descriptions: require('./lib/descriptions')
+  descriptions: require('./lib/descriptions'),
+  globals: require('./lib/globals')
 };
