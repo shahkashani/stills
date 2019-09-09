@@ -80,8 +80,6 @@ const generate = async ({
 
   console.log('🌍 Globals data:', JSON.stringify(globalsData));
 
-  result.globals = globalsData;
-
   let newImageInfo;
 
   for (const filter of filters) {
@@ -107,6 +105,8 @@ const generate = async ({
       }, Promise.resolve({}));
     }
   }
+
+  result.globals = globalsData;
 
   let text = null;
 
