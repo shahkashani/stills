@@ -82,18 +82,6 @@ const generate = async ({
 
   result.globals = globalsData;
 
-  let text = null;
-
-  if (description) {
-    console.log(`\n📯 Generating description with ${description.name}`);
-    text = await description.get(image, globalsData);
-    if (text) {
-      console.log(`🎉 Got description: ${text}`);
-    }
-
-    result.description = text;
-  }
-
   let newImageInfo;
 
   for (const filter of filters) {
@@ -107,6 +95,7 @@ const generate = async ({
     // Maybe just put it into imageInfo since that's much easier to regenerate and pass down
     newImageInfo = getImageInfo(image);
     if (newImageInfo.numFrames !== imageInfo.numFrames) {
+      console.log('🌍 Hotfix: gotta update globals!');
       imageInfo = newImageInfo;
       globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
         const memo = await memoFn;
@@ -117,6 +106,18 @@ const generate = async ({
         return memo;
       }, Promise.resolve({}));
     }
+  }
+
+  let text = null;
+
+  if (description) {
+    console.log(`\n📯 Generating description with ${description.name}`);
+    text = await description.get(image, globalsData);
+    if (text) {
+      console.log(`🎉 Got description: ${text}`);
+    }
+
+    result.description = text;
   }
 
   const tags = [];
