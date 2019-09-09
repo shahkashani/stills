@@ -38,7 +38,6 @@ const generate = async ({
     taggers: {},
     globals: {},
     source: null,
-    imageInfo: null,
     tags: [],
     content: null,
     description: null
@@ -67,11 +66,9 @@ const generate = async ({
 
   result.content = image;
 
-  const imageInfo = getImageInfo(image);
+  let imageInfo = getImageInfo(image);
 
-  result.imageInfo = imageInfo;
-
-  const globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
+  let globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
     const memo = await memoFn;
     console.log(`\n📯 Getting data ${globalsPlugin.name}`);
     const result = await globalsPlugin.get(image, imageInfo);
@@ -97,6 +94,8 @@ const generate = async ({
     result.description = text;
   }
 
+  let newImageInfo;
+
   for (const filter of filters) {
     console.log(`\n🎨 Applying filter ${filter.name}`);
     result.filters[filter.name] = await filter.apply(
@@ -104,6 +103,20 @@ const generate = async ({
       imageInfo,
       globalsData
     );
+    // Move scenes out of globals, I guess, since filters can change that stuff
+    // Maybe just put it into imageInfo since that's much easier to regenerate and pass down
+    newImageInfo = getImageInfo(image);
+    if (newImageInfo.numFrames !== imageInfo.numFrames) {
+      imageInfo = newImageInfo;
+      globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
+        const memo = await memoFn;
+        const result = await globalsPlugin.get(image, imageInfo);
+        if (result) {
+          memo[globalsPlugin.name] = result;
+        }
+        return memo;
+      }, Promise.resolve({}));
+    }
   }
 
   const tags = [];
