@@ -1,6 +1,6 @@
 const { unlinkSync } = require('fs');
 const { uniq, compact, map } = require('lodash');
-const { getImageInfo } = require('./lib/utils');
+const getImageInfo = require('./lib/utils/get-image-info');
 
 const MAX_GENERATION_ATTEMPTS = 10;
 
@@ -66,9 +66,9 @@ const generate = async ({
 
   result.content = image;
 
-  let imageInfo = getImageInfo(image);
+  const imageInfo = () => getImageInfo(image);
 
-  let globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
+  const globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
     const memo = await memoFn;
     console.log(`\n📯 Getting data ${globalsPlugin.name}`);
     const result = await globalsPlugin.get(image, imageInfo);
@@ -80,7 +80,7 @@ const generate = async ({
 
   console.log('🌍 Globals data:', JSON.stringify(globalsData));
 
-  let newImageInfo;
+  result.globals = globalsData;
 
   for (const filter of filters) {
     console.log(`\n🎨 Applying filter ${filter.name}`);
@@ -89,24 +89,7 @@ const generate = async ({
       imageInfo,
       globalsData
     );
-    // Move scenes out of globals, I guess, since filters can change that stuff
-    // Maybe just put it into imageInfo since that's much easier to regenerate and pass down
-    newImageInfo = getImageInfo(image);
-    if (newImageInfo.numFrames !== imageInfo.numFrames) {
-      console.log('🌍 Hotfix: gotta update globals!');
-      imageInfo = newImageInfo;
-      globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
-        const memo = await memoFn;
-        const result = await globalsPlugin.get(image, imageInfo);
-        if (result) {
-          memo[globalsPlugin.name] = result;
-        }
-        return memo;
-      }, Promise.resolve({}));
-    }
   }
-
-  result.globals = globalsData;
 
   let text = null;
 
