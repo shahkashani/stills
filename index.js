@@ -78,7 +78,7 @@ const generate = async ({
     return memo;
   }, Promise.resolve({}));
 
-  console.log('🌍 Globals data:', JSON.stringify(globalsData));
+  console.log('🌍 Globals data:', JSON.stringify(globalsData, null, 2));
 
   result.globals = globalsData;
 
