@@ -1,5 +1,6 @@
 const { unlinkSync } = require('fs');
 const { uniq, compact, map } = require('lodash');
+const pressAnyKey = require('press-any-key');
 const getImageInfo = require('./lib/utils/get-image-info');
 
 const MAX_GENERATION_ATTEMPTS = 10;
@@ -30,7 +31,8 @@ const generate = async ({
   validators = [],
   taggers = [],
   globals = [],
-  description = null
+  description = null,
+  isPrompt = false,
 } = {}) => {
   const result = {
     filters: {},
@@ -124,6 +126,10 @@ const generate = async ({
   }
 
   result.tags = tags;
+
+  if (isPrompt && destinations && destinations.length > 0) {
+    await pressAnyKey();
+  }
 
   for (const destination of destinations) {
     console.log(`\n🚀 Publishing to ${destination.name}`);
