@@ -1,8 +1,8 @@
 # What is this?
 
-![A Fieri Frame](https://66.media.tumblr.com/9b2fc56a82f38194079d9aead9a4ad31/tumblr_pn6vnuPwrO1y72ak6o1_1280.png)
+![A Frame](https://66.media.tumblr.com/9b2fc56a82f38194079d9aead9a4ad31/tumblr_pn6vnuPwrO1y72ak6o1_1280.png)
 
-A small library to help you create a stills generator like [Fieri Frames](http://fieriframes.tumblr.com). In fact, the [source](https://github.com/shahkashani/fieriframes/) for that bot might be a good example to look at.
+A small library to help you create a stills generator.
 
 # Dependencies
 
