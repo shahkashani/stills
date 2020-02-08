@@ -73,7 +73,7 @@ const generate = async ({
   const globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
     const memo = await memoFn;
     console.log(`\n📯 Getting data ${globalsPlugin.name}`);
-    const result = await globalsPlugin.get(image, imageInfo);
+    const result = await globalsPlugin.get(image, imageInfo, memo);
     if (result) {
       memo[globalsPlugin.name] = result;
     }
@@ -136,7 +136,7 @@ const generate = async ({
     const response = await destination.publish(image, {
       tags,
       text
-    });
+    }, globalsData);
     if (response) {
       result.destinations[destination.name] = response;
     }

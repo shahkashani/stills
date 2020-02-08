@@ -21,7 +21,7 @@
     "bad-words": "^3.0.2",
     "byebyte": "^2.0.0",
     "canvas": "^2.5.0",
-    "compromise": "^11.13.2",
+    "compromise": "^11.14.3",
     "dotenv": "^8.0.0",
     "face-api.js": "^0.18.0",
     "gif-composites": "^1.0.0",
