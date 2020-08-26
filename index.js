@@ -171,7 +171,8 @@ const generateChain = async (configs) => {
 const deleteStills = (results) => {
   const files = Array.isArray(results)
     ? uniq(compact(map(results, 'content')))
-    : [results.content];
+    : results.content;
+
   files.forEach((file) => {
     unlinkSync(file);
   });
