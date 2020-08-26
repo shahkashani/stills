@@ -5,34 +5,34 @@ const getImageInfo = require('./lib/utils/get-image-info');
 
 const MAX_GENERATION_ATTEMPTS = 10;
 
-const validate = async (image, validators) => {
+const validate = async (images, validators) => {
   if (validators.length === 0) {
     return true;
   }
   const results = await Promise.all(
-    validators.map(async validator => {
+    validators.map(async (validator) => {
       console.log(`\n🔍 Validating using ${validator.name}`);
-      const result = await validator.validate(image);
+      const result = await validator.validate(images);
       if (!result) {
         console.log(`😵 Validation failed!\n`);
       }
       return result;
     })
   );
-  return results.every(result => result);
+  return results.every((result) => result);
 };
 
 const generate = async ({
   source,
   content,
-  image = null,
+  images = null,
   filters = [],
   destinations = [],
   validators = [],
   taggers = [],
   globals = [],
   description = null,
-  isPrompt = false,
+  isPrompt = false
 } = {}) => {
   const result = {
     filters: {},
@@ -45,7 +45,7 @@ const generate = async ({
     description: null
   };
 
-  if (!image) {
+  if (!images) {
     const sourceResult = await source.get();
     const { input, output } = sourceResult;
     result.source = sourceResult;
@@ -53,27 +53,29 @@ const generate = async ({
     let isValid = false;
 
     for (let i = 0; !isValid && i < MAX_GENERATION_ATTEMPTS; i++) {
-      image = content.generate(input, output);
-      isValid = await validate(image, validators);
+      images = content.generate(input, output);
+      isValid = await validate(images, validators);
       if (!isValid) {
-        unlinkSync(image);
-        image = null;
+        for (const image of images) {
+          unlinkSync(image);
+        }
+        images = null;
       }
     }
-    if (!image) {
+    if (!images) {
       console.log('\n🤷 Giving up on the validators, sorry!');
-      image = content.generate(input, output);
+      images = content.generate(input, output);
     }
   }
 
-  result.content = image;
+  result.content = images;
 
-  const imageInfo = () => getImageInfo(image);
+  const imageInfo = (file) => getImageInfo(file);
 
   const globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
     const memo = await memoFn;
     console.log(`\n📯 Getting data ${globalsPlugin.name}`);
-    const result = await globalsPlugin.get(image, imageInfo, memo);
+    const result = await globalsPlugin.get(images, imageInfo, memo);
     if (result) {
       memo[globalsPlugin.name] = result;
     }
@@ -84,20 +86,21 @@ const generate = async ({
 
   result.globals = globalsData;
 
-  for (const filter of filters) {
-    console.log(`\n🎨 Applying filter ${filter.name}`);
-    result.filters[filter.name] = await filter.apply(
-      image,
-      imageInfo,
-      globalsData
-    );
+  let i = 0;
+  for (const image of images) {
+    for (const filter of filters) {
+      console.log(`🎨 Applying filter ${filter.name} (image ${i + 1})`);
+      await filter.apply(image, imageInfo, globalsData, i);
+      result.filters[filter.name] = true;
+    }
+    i += 1;
   }
 
   let text = null;
 
   if (description) {
     console.log(`\n📯 Generating description with ${description.name}`);
-    text = await description.get(image, globalsData);
+    text = await description.get(images, globalsData);
     if (text) {
       console.log(`🎉 Got description: ${text}`);
     }
@@ -133,10 +136,14 @@ const generate = async ({
 
   for (const destination of destinations) {
     console.log(`\n🚀 Publishing to ${destination.name}`);
-    const response = await destination.publish(image, {
-      tags,
-      text
-    }, globalsData);
+    const response = await destination.publish(
+      images,
+      {
+        tags,
+        text
+      },
+      globalsData
+    );
     if (response) {
       result.destinations[destination.name] = response;
     }
@@ -148,7 +155,7 @@ const generate = async ({
   return result;
 };
 
-const generateChain = async configs => {
+const generateChain = async (configs) => {
   const results = [];
   let lastResult = null;
   for (let config of configs) {
@@ -161,11 +168,11 @@ const generateChain = async configs => {
   return results;
 };
 
-const deleteStills = results => {
+const deleteStills = (results) => {
   const files = Array.isArray(results)
     ? uniq(compact(map(results, 'content')))
     : [results.content];
-  files.forEach(file => {
+  files.forEach((file) => {
     unlinkSync(file);
   });
 };
