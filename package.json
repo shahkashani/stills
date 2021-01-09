@@ -16,7 +16,6 @@
   "author": "Shah Kashani",
   "license": "MIT",
   "dependencies": {
-    "@0x04/string-mutilator": "^1.2.0",
     "@tensorflow/tfjs-node": "^0.3.0",
     "aws-sdk": "^2.493.0",
     "bad-words": "^3.0.2",
