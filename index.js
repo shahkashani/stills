@@ -68,6 +68,10 @@ const generate = async ({
     }
   }
 
+  if (isPrompt) {
+    await pressAnyKey();
+  }
+
   result.content = images;
 
   const imageInfo = (file) => getImageInfo(file);
