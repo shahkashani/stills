@@ -68,10 +68,6 @@ const generate = async ({
     }
   }
 
-  if (isPrompt) {
-    await pressAnyKey();
-  }
-
   result.content = images;
 
   const imageInfo = (file) => getImageInfo(file);
@@ -89,6 +85,11 @@ const generate = async ({
   console.log('🌍 Globals data:', JSON.stringify(globalsData, null, 2));
 
   result.globals = globalsData;
+
+  if (isPrompt) {
+    await pressAnyKey();
+  }
+
 
   let i = 0;
   for (const image of images) {
