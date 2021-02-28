@@ -32,6 +32,7 @@
     "press-any-key": "^0.1.1",
     "readimage": "^1.1.1",
     "sbd": "^1.0.18",
+    "sharp": "^0.27.2",
     "shelljs": "^0.8.4",
     "tinycolor2": "^1.4.2",
     "tumblr.js": "^2.0.2",
