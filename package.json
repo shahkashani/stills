@@ -23,7 +23,6 @@
     "compromise": "^11.14.3",
     "dotenv": "^8.2.0",
     "face-api.js": "^0.18.0",
-    "gif-composites": "^1.0.0",
     "glob": "^7.1.6",
     "lodash": "^4.17.21",
     "microsoft-computer-vision": "^0.4.2",
@@ -37,7 +36,6 @@
     "tinycolor2": "^1.4.2",
     "tumblr.js": "^2.0.2",
     "twitter": "^1.7.1",
-    "wordwrap": "^1.0.0",
     "writegif": "^1.1.0",
     "yargs": "^13.3.2"
   }
