@@ -16,6 +16,8 @@
   "author": "Shah Kashani",
   "license": "MIT",
   "dependencies": {
+    "@tensorflow-models/body-pix": "^2.1.0",
+    "@tensorflow/tfjs": "^3.2.0",
     "@tensorflow/tfjs-node": "^0.3.2",
     "aws-sdk": "^2.853.0",
     "bad-words": "^3.0.4",
@@ -24,6 +26,7 @@
     "dotenv": "^8.2.0",
     "face-api.js": "^0.18.0",
     "glob": "^7.1.6",
+    "image-output": "^2.4.2",
     "lodash": "^4.17.21",
     "microsoft-computer-vision": "^0.4.2",
     "parse-srt": "^1.0.0-alpha",
