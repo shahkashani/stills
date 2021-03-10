@@ -32,7 +32,8 @@ const generate = async ({
   taggers = [],
   globals = [],
   description = null,
-  isPrompt = false
+  isPrompt = false,
+  passthrough = null
 } = {}) => {
   const result = {
     filters: {},
@@ -44,6 +45,22 @@ const generate = async ({
     content: null,
     description: null
   };
+
+  if (passthrough && destinations) {
+    for (const destination of destinations) {
+      console.log(`\n🚀 Passing through to to ${destination.name}`);
+      if (destination.passthrough) {
+        const response = await destination.passthrough(passthrough);
+        if (response) {
+          result.destinations[destination.name] = response;
+        }
+        console.log(
+          `👀 Go check it out at ${'url' in response ? response.url : response}`
+        );
+      }
+    }
+    return result;
+  }
 
   if (!images) {
     const sourceResult = await source.get();
@@ -89,7 +106,6 @@ const generate = async ({
   if (isPrompt) {
     await pressAnyKey();
   }
-
 
   let i = 0;
   for (const image of images) {
@@ -177,6 +193,10 @@ const deleteStills = (results) => {
   const files = Array.isArray(results)
     ? uniq(compact(map(results, 'content')))
     : results.content;
+
+  if (!Array.isArray(files)) {
+    return;
+  }
 
   files.forEach((file) => {
     unlinkSync(file);
