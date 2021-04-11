@@ -33,7 +33,8 @@ const generate = async ({
   globals = [],
   description = null,
   isPrompt = false,
-  passthrough = null
+  passthrough = null,
+  ask = null,
 } = {}) => {
   const result = {
     filters: {},
