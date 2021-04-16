@@ -109,10 +109,11 @@ const generate = async ({
   }
 
   let i = 0;
+  const numImages = images.length;
   for (const image of images) {
     for (const filter of filters) {
       console.log(`🎨 Applying filter ${filter.name} (image ${i + 1})`);
-      await filter.apply(image, imageInfo, globalsData, i);
+      await filter.apply(image, imageInfo, globalsData, i, numImages);
       result.filters[filter.name] = true;
     }
     i += 1;
