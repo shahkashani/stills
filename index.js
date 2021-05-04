@@ -34,7 +34,7 @@ const generate = async ({
   description = null,
   isPrompt = false,
   passthrough = null,
-  ask = null,
+  ask = null
 } = {}) => {
   const result = {
     filters: {},
@@ -216,5 +216,6 @@ module.exports = {
   validators: require('./lib/validators'),
   taggers: require('./lib/taggers'),
   descriptions: require('./lib/descriptions'),
-  globals: require('./lib/globals')
+  globals: require('./lib/globals'),
+  utils: require('./lib/utils')
 };
