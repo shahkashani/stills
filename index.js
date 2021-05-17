@@ -11,18 +11,16 @@ const validate = async (images, validators) => {
   }
   const results = await Promise.all(
     validators.map(async (validator) => {
-      let isValid = true;
       for (const image of images) {
         console.log(`🔍 Validating (${validator.name}) ${image}`);
         if (!(await validator.validate(image))) {
           console.log('😵 Validation failed');
-          isValid = false;
-          continue;
+          return false;
         } else {
           console.log('👍 Validation passed');
         }
       }
-      return isValid;
+      return true;
     })
   );
   return results.every((result) => result);
