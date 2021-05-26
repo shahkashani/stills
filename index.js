@@ -37,8 +37,7 @@ const generate = async ({
   globals = [],
   description = null,
   isPrompt = false,
-  passthrough = null,
-  ask = null
+  passthrough = null
 } = {}) => {
   const result = {
     filters: {},
@@ -67,6 +66,8 @@ const generate = async ({
     return result;
   }
 
+  let contentResult;
+
   if (!images) {
     const sourceResult = await source.get();
     const { input, output } = sourceResult;
@@ -75,7 +76,8 @@ const generate = async ({
     let isValid = false;
 
     for (let i = 0; !isValid && i < MAX_GENERATION_ATTEMPTS; i++) {
-      images = content.generate(input, output);
+      contentResult = content.generate(input, output);
+      images = contentResult.files;
       isValid = await validate(images, validators);
       if (!isValid) {
         for (const image of images) {
@@ -86,7 +88,8 @@ const generate = async ({
     }
     if (!images) {
       console.log('\n🤷 Giving up on the validators, sorry!');
-      images = content.generate(input, output);
+      contentResult = content.generate(input, output);
+      images = contentResult.files;
     }
   }
 
@@ -97,7 +100,12 @@ const generate = async ({
   const globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
     const memo = await memoFn;
     console.log(`\n📯 Getting data ${globalsPlugin.name}`);
-    const result = await globalsPlugin.get(images, imageInfo, memo);
+    const result = await globalsPlugin.get(
+      images,
+      imageInfo,
+      memo,
+      contentResult
+    );
     if (result) {
       memo[globalsPlugin.name] = result;
     }
