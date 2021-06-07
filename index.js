@@ -3,7 +3,7 @@ const { uniq, compact, map } = require('lodash');
 const pressAnyKey = require('press-any-key');
 const getImageInfo = require('./lib/utils/get-image-info');
 
-const MAX_GENERATION_ATTEMPTS = 10;
+const MAX_GENERATION_ATTEMPTS = 9;
 
 const validate = async (images, validators) => {
   if (validators.length === 0) {
@@ -29,7 +29,7 @@ const validate = async (images, validators) => {
 const generate = async ({
   source,
   content,
-  images = null,
+  caption,
   filters = [],
   destinations = [],
   validators = [],
@@ -37,7 +37,8 @@ const generate = async ({
   globals = [],
   description = null,
   isPrompt = false,
-  passthrough = null
+  passthrough = null,
+  num = null
 } = {}) => {
   const result = {
     filters: {},
@@ -66,33 +67,40 @@ const generate = async ({
     return result;
   }
 
-  let contentResult;
+  const sourceResult = await source.get();
+  const { input, output, name } = sourceResult;
 
-  if (!images) {
-    const sourceResult = await source.get();
-    const { input, output } = sourceResult;
-    result.source = sourceResult;
+  result.source = sourceResult;
 
-    let isValid = false;
+  let isValid = false;
+  let images = null;
+  let captions;
+  let timestamps;
+  let numStills;
 
-    for (let i = 0; !isValid && i < MAX_GENERATION_ATTEMPTS; i++) {
-      contentResult = content.generate(input, output);
-      images = contentResult.files;
-      isValid = await validate(images, validators);
-      if (!isValid) {
+  for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
+    const captionResults = await caption.get(name);
+    captions = captionResults.captions;
+    timestamps = captionResults.timestamps;
+    numStills = captions.length || num;
+    images = content.generate(input, output, numStills, timestamps);
+    isValid = await validate(images, validators);
+    if (!isValid) {
+      if (i === MAX_GENERATION_ATTEMPTS) {
+        console.log(`\n📯 Giving up on validators, sorry.`);
+      } else {
         for (const image of images) {
           unlinkSync(image);
         }
         images = null;
+        captions = [];
+        timestamps = [];
       }
-    }
-    if (!images) {
-      console.log('\n🤷 Giving up on the validators, sorry!');
-      contentResult = content.generate(input, output);
-      images = contentResult.files;
     }
   }
 
+  result.captions = captions;
+  result.timestamps = timestamps;
   result.content = images;
 
   const imageInfo = (file) => getImageInfo(file);
@@ -100,21 +108,17 @@ const generate = async ({
   const globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
     const memo = await memoFn;
     console.log(`\n📯 Getting data ${globalsPlugin.name}`);
-    const result = await globalsPlugin.get(
-      images,
-      imageInfo,
-      memo,
-      contentResult
-    );
+    const result = await globalsPlugin.get(images, imageInfo, memo);
     if (result) {
       memo[globalsPlugin.name] = result;
     }
     return memo;
   }, Promise.resolve({}));
 
-  console.log('🌍 Globals data:', JSON.stringify(globalsData, null, 2));
-
+  globalsData.captions = captions;
   result.globals = globalsData;
+
+  console.log('🌍 Globals data:', JSON.stringify(globalsData, null, 2));
 
   if (isPrompt) {
     await pressAnyKey();
@@ -125,7 +129,7 @@ const generate = async ({
   for (const image of images) {
     for (const filter of filters) {
       console.log(`🎨 Applying filter ${filter.name} (image ${i + 1})`);
-      await filter.apply(image, imageInfo, globalsData, i, numImages);
+      await filter.apply(image, imageInfo, i, numImages, globalsData);
       result.filters[filter.name] = true;
     }
     i += 1;
@@ -229,5 +233,6 @@ module.exports = {
   taggers: require('./lib/taggers'),
   descriptions: require('./lib/descriptions'),
   globals: require('./lib/globals'),
-  utils: require('./lib/utils')
+  utils: require('./lib/utils'),
+  captions: require('./lib/captions')
 };
