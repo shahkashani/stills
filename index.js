@@ -34,9 +34,9 @@ const generate = async ({
   destinations = [],
   validators = [],
   taggers = [],
-  globals = [],
   description = null,
   isPrompt = false,
+  analysis = null,
   passthrough = null,
   num = null
 } = {}) => {
@@ -44,7 +44,6 @@ const generate = async ({
     filters: {},
     destinations: {},
     taggers: {},
-    globals: {},
     source: null,
     tags: [],
     content: null,
@@ -105,20 +104,12 @@ const generate = async ({
 
   const imageInfo = (file) => getImageInfo(file);
 
-  const globalsData = await globals.reduce(async (memoFn, globalsPlugin) => {
-    const memo = await memoFn;
-    console.log(`\n📯 Getting data ${globalsPlugin.name}`);
-    const result = await globalsPlugin.get(images, imageInfo, memo);
-    if (result) {
-      memo[globalsPlugin.name] = result;
-    }
-    return memo;
-  }, Promise.resolve({}));
+  if (analysis) {
+    console.log(`🔬 Running image analysis with ${analysis.name}`);
+    result.analysis = await analysis.get(images, imageInfo);
+  }
 
-  globalsData.captions = captions;
-  result.globals = globalsData;
-
-  console.log('🌍 Globals data:', JSON.stringify(globalsData, null, 2));
+  console.log('🌍 Results so far:', JSON.stringify(result, null, 2));
 
   if (isPrompt) {
     await pressAnyKey();
@@ -129,7 +120,7 @@ const generate = async ({
   for (const image of images) {
     for (const filter of filters) {
       console.log(`🎨 Applying filter ${filter.name} (image ${i + 1})`);
-      await filter.apply(image, imageInfo, i, numImages, globalsData);
+      await filter.apply(image, imageInfo, i, numImages, result);
       result.filters[filter.name] = true;
     }
     i += 1;
@@ -139,7 +130,7 @@ const generate = async ({
 
   if (description) {
     console.log(`\n📯 Generating description with ${description.name}`);
-    text = await description.get(images, globalsData);
+    text = await description.get(images, result);
     if (text) {
       console.log(`🎉 Got description: ${text}`);
     }
@@ -150,7 +141,7 @@ const generate = async ({
   const tags = [];
 
   for (const tagger of taggers) {
-    const taggerResult = await tagger.get(result, globalsData);
+    const taggerResult = await tagger.get(result);
     if (Array.isArray(taggerResult)) {
       result.taggers[tagger.name] = taggerResult;
       if (taggerResult.length > 0) {
@@ -181,7 +172,7 @@ const generate = async ({
         tags,
         text
       },
-      globalsData
+      result
     );
     if (response) {
       result.destinations[destination.name] = response;
@@ -232,7 +223,7 @@ module.exports = {
   validators: require('./lib/validators'),
   taggers: require('./lib/taggers'),
   descriptions: require('./lib/descriptions'),
-  globals: require('./lib/globals'),
+  analysis: require('./lib/analysis'),
   utils: require('./lib/utils'),
   captions: require('./lib/captions')
 };
