@@ -66,9 +66,10 @@ const generate = async ({
     return result;
   }
 
-  const episodeName = caption.getEpisodeName
-    ? await caption.getEpisodeName(await source.getAllNames())
-    : null;
+  const episodeName =
+    caption && caption.getEpisodeName
+      ? await caption.getEpisodeName(await source.getAllNames())
+      : null;
 
   const sourceResult = await source.get(episodeName);
   const { input, output, name } = sourceResult;
@@ -77,15 +78,17 @@ const generate = async ({
 
   let isValid = false;
   let images = null;
-  let captions;
+  let captions = [];
   let timestamps;
   let numStills;
 
   for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
-    const captionResults = await caption.get(name);
-    captions = captionResults.captions;
-    timestamps = captionResults.timestamps;
-    numStills = captions.length || num;
+    if (caption) {
+      const captionResults = await caption.get(name);
+      captions = captionResults.captions;
+      timestamps = captionResults.timestamps;
+    }
+    numStills = captions.length || num || 1;
     images = content.generate(input, output, numStills, timestamps);
     isValid = await validate(images, validators);
     if (!isValid) {
