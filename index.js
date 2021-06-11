@@ -66,7 +66,11 @@ const generate = async ({
     return result;
   }
 
-  const sourceResult = await source.get();
+  const episodeName = caption.getEpisodeName
+    ? await caption.getEpisodeName(await source.getAllNames())
+    : null;
+
+  const sourceResult = await source.get(episodeName);
   const { input, output, name } = sourceResult;
 
   result.source = sourceResult;
