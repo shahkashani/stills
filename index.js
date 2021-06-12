@@ -80,6 +80,7 @@ const generate = async ({
   let images = null;
   let captions = [];
   let timestamps;
+  let lengths;
   let numStills;
 
   for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
@@ -87,9 +88,10 @@ const generate = async ({
       const captionResults = await caption.get(name);
       captions = captionResults.captions;
       timestamps = captionResults.timestamps;
+      lengths = captionResults.lengths;
     }
     numStills = captions.length || num || 1;
-    images = content.generate(input, output, numStills, timestamps);
+    images = content.generate(input, output, numStills, timestamps, lengths);
     isValid = await validate(images, validators);
     if (!isValid) {
       if (i === MAX_GENERATION_ATTEMPTS) {
@@ -107,6 +109,7 @@ const generate = async ({
 
   result.captions = captions;
   result.timestamps = timestamps;
+  result.lengths = lengths;
   result.content = images;
 
   const imageInfo = (file) => getImageInfo(file);
