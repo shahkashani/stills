@@ -13,20 +13,31 @@
   "engines": {
     "node": "12.x"
   },
+  "jest": {
+    "testMatch": [
+      "**/**.tests.js"
+    ]
+  },
+  "scripts": {
+    "test": "./node_modules/.bin/jest"
+  },
   "author": "Shah Kashani",
   "license": "MIT",
   "dependencies": {
     "@tensorflow-models/body-pix": "^2.1.0",
     "@tensorflow/tfjs-node": "^3.3.0",
     "@vladmandic/face-api": "^0.30.3",
-    "aws-sdk": "^2.853.0",
+    "aws-sdk": "^2.927.0",
     "bad-words": "^3.0.4",
     "canvas": "^2.6.1",
-    "compromise": "^11.14.3",
+    "compromise": "^13.11.2",
+    "compromise-sentences": "^0.3.0",
+    "compromise-strict": "0.0.2",
     "dotenv": "^8.2.0",
     "face-api.js": "^0.22.2",
     "glob": "^7.1.6",
     "image-output": "^2.4.2",
+    "jest": "^27.0.4",
     "lodash": "^4.17.21",
     "microsoft-computer-vision": "^0.4.2",
     "parse-srt": "^1.0.0-alpha",
