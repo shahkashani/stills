@@ -66,6 +66,10 @@ const generate = async ({
     return result;
   }
 
+  if (caption && caption.getEpisodeName) {
+    console.log(`💬 Getting episode name from ${caption.name}`);
+  }
+
   const episodeName =
     caption && caption.getEpisodeName
       ? await caption.getEpisodeName(await source.getAllNames())
@@ -85,6 +89,7 @@ const generate = async ({
 
   for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
     if (caption) {
+      console.log(`💬 Getting captions from ${caption.name}`);
       const captionResults = await caption.get(name);
       captions = captionResults.captions;
       timestamps = captionResults.timestamps;
