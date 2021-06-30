@@ -1,0 +1,24 @@
+{
+  "name": "3d",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node dev.js",
+    "start": "NODE_ENV=production node run.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@vladmandic/human": "^2.0.3",
+    "express": "^4.17.1",
+    "glob": "^7.1.7",
+    "parcel-bundler": "^1.12.5",
+    "puppeteer": "^10.1.0",
+    "three": "^0.129.0"
+  },
+  "browserslist": [
+    "last 1 Chrome versions"
+  ],
+  "devDependencies": {}
+}
