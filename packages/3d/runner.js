@@ -25,7 +25,9 @@ async function run({ files } = {}) {
   }
   return new Promise(async (resolve) => {
     const app = await server({ port: PORT, input: inFolder });
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
     const page = await browser.newPage();
     await page.goto(URL);
     page.on('metrics', ({ title }) => {
