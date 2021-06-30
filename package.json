@@ -18,12 +18,9 @@
       "**/**.tests.js"
     ]
   },
-  "subPackages": [
-    "packages/3d"
-  ],
   "scripts": {
     "test": "./node_modules/.bin/jest",
-    "postinstall": "./node_modules/.bin/subpkg install"
+    "postinstall": "cd packages/3d && npm install"
   },
   "author": "Shah Kashani",
   "license": "MIT",
@@ -60,7 +57,5 @@
     "writegif": "^1.1.0",
     "yargs": "^13.3.2"
   },
-  "devDependencies": {
-    "subpackage": "^1.1.0"
-  }
+  "devDependencies": {}
 }
