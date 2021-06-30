@@ -47,7 +47,7 @@ module.exports = async ({ port = 8080, input } = {}) => {
   app.use(bundler.middleware());
 
   return new Promise((resolve) => {
-    bundler.on('bundled', () => {
+    bundler.once('bundled', () => {
       const server = app.listen(port);
       console.log(`👂 Listening on port ${port}`);
       resolve(server);
