@@ -8,10 +8,10 @@ const PORT = '1234';
 const URL = `http://localhost:${PORT}`;
 const DONE_EVENT = 'done';
 
-async function run({ files } = {}) {
+async function run({ files, args = [] } = {}) {
   const inFolder = resolve(__dirname, 'runner');
   const outFolder = resolve(__dirname, 'output');
-
+  console.log('Running with args', args);
   if (files && files.length > 0) {
     if (!existsSync(inFolder)) {
       mkdirSync(inFolder);
@@ -26,13 +26,13 @@ async function run({ files } = {}) {
   return new Promise(async (resolve) => {
     const app = await server({ port: PORT, input: inFolder });
     const browser = await puppeteer.launch({
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      args
     });
     const page = await browser.newPage();
     await page.goto(URL);
     page.on('metrics', ({ title }) => {
       if (title === DONE_EVENT) {
-        browser.close();
+        await browser.close();
         app.close();
         if (files && files.length > 0) {
           for (const file of files) {
