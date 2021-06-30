@@ -1,6 +1,6 @@
 const express = require('express');
 const app = express();
-const { writeFileSync } = require('fs');
+const { writeFileSync, existsSync, mkdirSync } = require('fs');
 const { sync } = require('glob');
 const { resolve, parse } = require('path');
 const Bundler = require('parcel-bundler');
@@ -9,6 +9,14 @@ const DIST_FOLDER = resolve(__dirname, './dist');
 module.exports = async ({ port = 8080, input } = {}) => {
   const INPUT_FOLDER = input || resolve(__dirname, './input');
   const OUTPUT_FOLDER = resolve(__dirname, './output');
+
+  if (!existsSync(INPUT_FOLDER)) {
+    mkdirSync(INPUT_FOLDER);
+  }
+
+  if (!existsSync(OUTPUT_FOLDER)) {
+    mkdirSync(OUTPUT_FOLDER);
+  }
 
   const bundler = new Bundler(resolve(__dirname, './index.html'), {});
 

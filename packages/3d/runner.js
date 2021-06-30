@@ -1,6 +1,6 @@
 const server = require('./server');
 const puppeteer = require('puppeteer');
-const { copyFileSync, unlinkSync } = require('fs');
+const { copyFileSync, unlinkSync, existsSync, mkdirSync } = require('fs');
 const { sync } = require('glob');
 const { parse, resolve } = require('path');
 
@@ -13,6 +13,9 @@ async function run({ files } = {}) {
   const outFolder = resolve(__dirname, 'output');
 
   if (files && files.length > 0) {
+    if (!existsSync(inFolder)) {
+      mkdirSync(inFolder);
+    }
     const existingFiles = sync(`${inFolder}/*`);
     existingFiles.forEach((file) => unlinkSync(file));
     for (const file of files) {
