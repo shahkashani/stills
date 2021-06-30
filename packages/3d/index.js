@@ -106,7 +106,7 @@ const process = async (url) => {
   resize(image, renderer, camera);
   const res = await human.detect(image);
 
-  if (res?.face?.length > 0) {
+  if (res && res.face && res.face.length > 0) {
     for (const face of res.face) {
       const faceGeometry = new FaceGeometry(human.faceTriangulation);
       const mesh = new Mesh(faceGeometry);

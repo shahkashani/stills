@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node dev.js",
     "start": "NODE_ENV=production node run.js",
-    "build": "NODE_ENV=production node build.js"
+    "build": "node build.js"
   },
   "author": "",
   "license": "ISC",
