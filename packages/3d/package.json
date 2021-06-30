@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "dev": "node dev.js",
-    "start": "NODE_ENV=production node run.js"
+    "start": "NODE_ENV=production node run.js",
+    "build": "NODE_ENV=production node build.js"
   },
   "author": "",
   "license": "ISC",

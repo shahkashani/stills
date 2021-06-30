@@ -6,7 +6,7 @@ const { resolve, parse } = require('path');
 const Bundler = require('parcel-bundler');
 const DIST_FOLDER = resolve(__dirname, './dist');
 
-module.exports = async ({ port = 8080, input } = {}) => {
+module.exports = async ({ port = 8080, input, isBuild = false } = {}) => {
   const INPUT_FOLDER = input || resolve(__dirname, './input');
   const OUTPUT_FOLDER = resolve(__dirname, './output');
 
@@ -44,13 +44,20 @@ module.exports = async ({ port = 8080, input } = {}) => {
     res.sendStatus(200);
   });
 
-  app.use(bundler.middleware());
+  if (isBuild) {
+    app.use(bundler.middleware());
+  }
 
   return new Promise((resolve) => {
-    bundler.once('bundled', () => {
-      const server = app.listen(port);
+    if (isBuild) {
+      bundler.once('bundled', () => {
+        console.log(`👂 Listening on port ${port}`);
+        const server = app.listen(port);
+        resolve(server);
+      });
+    } else {
       console.log(`👂 Listening on port ${port}`);
-      resolve(server);
-    });
+      resolve(app.listen(port));
+    }
   });
 };

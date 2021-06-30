@@ -24,13 +24,16 @@ async function run({ files, args = [] } = {}) {
     }
   }
   return new Promise(async (resolve) => {
-    const app = await server({ port: PORT, input: inFolder });
+    const app = await server({
+      port: PORT,
+      input: files && files.length > 0 ? inFolder : null
+    });
     const browser = await puppeteer.launch({
       args
     });
     const page = await browser.newPage();
     await page.goto(URL);
-    page.on('metrics', ({ title }) => {
+    page.on('metrics', async ({ title }) => {
       if (title === DONE_EVENT) {
         await browser.close();
         app.close();
