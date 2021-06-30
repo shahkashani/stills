@@ -32,7 +32,11 @@ async function run({ files } = {}) {
         if (files && files.length > 0) {
           for (const file of files) {
             const { base } = parse(file);
-            copyFileSync(`${outFolder}/${base}`, file);
+            const rawFile = `${inFolder}/${base}`;
+            const processedFile = `${outFolder}/${base}`;
+            copyFileSync(processedFile, file);
+            unlinkSync(processedFile);
+            unlinkSync(rawFile);
           }
         }
         resolve();
