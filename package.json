@@ -42,6 +42,7 @@
     "jest": "^27.0.4",
     "lodash": "^4.17.21",
     "microsoft-computer-vision": "^0.4.2",
+    "node-rake": "^1.0.1",
     "parse-srt": "^1.0.0-alpha",
     "pdf-parse": "^1.1.1",
     "pixelmatch": "^5.2.1",
