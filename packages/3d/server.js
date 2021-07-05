@@ -16,30 +16,31 @@ const getImages = (folder) => {
   }));
 };
 
-module.exports = async ({ port = 8080, config, static = [] } = {}) => {
-  let configObject;
+const getConfig = (config) => {
+  if (config) {
+    console.log('Reading config', config);
+    const configObject = JSON.parse(readFileSync(config).toString());
+    console.log(JSON.stringify(configObject, null, 2));
+    return configObject;
+  }
 
+  return {
+    images: getImages(DEFAULT_INPUT_FOLDER).map((image) => ({
+      ...image,
+      output: `${OUTPUT_FOLDER}/${image.name}`
+    })),
+    masks: getImages(MASKS_FOLDER),
+    opacity: 1
+  };
+};
+
+module.exports = async ({ port = 8080, config, static = [] } = {}) => {
   if (!existsSync(DEFAULT_INPUT_FOLDER)) {
     mkdirSync(DEFAULT_INPUT_FOLDER);
   }
 
   if (!existsSync(OUTPUT_FOLDER)) {
     mkdirSync(OUTPUT_FOLDER);
-  }
-
-  if (config) {
-    console.log('Reading config', config);
-    configObject = JSON.parse(readFileSync(config).toString());
-    console.log(JSON.stringify(configObject, null, 2));
-  } else {
-    configObject = {
-      images: getImages(DEFAULT_INPUT_FOLDER).map((image) => ({
-        ...image,
-        output: `${OUTPUT_FOLDER}/${image.name}`
-      })),
-      masks: getImages(MASKS_FOLDER),
-      opacity: 1
-    };
   }
 
   app.use(
@@ -57,7 +58,7 @@ module.exports = async ({ port = 8080, config, static = [] } = {}) => {
   app.use(express.json({ limit: '50mb' }));
 
   app.get('/config', (req, res) => {
-    res.json(configObject);
+    res.json(getConfig(config));
   });
 
   app.post('/save', (req, res) => {
@@ -74,8 +75,12 @@ module.exports = async ({ port = 8080, config, static = [] } = {}) => {
   console.log(`👂 Listening on port ${port}`);
   const server = app.listen(port);
 
-  const cleanup = async () => {
-    server.close();
+  const cleanup = () => {
+    return new Promise((resolve) => {
+      server.close(() => {
+        resolve();
+      });
+    });
   };
 
   return { app, server, cleanup };
