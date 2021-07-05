@@ -28,7 +28,7 @@ const userConfig = {
   filter: { enabled: false },
   face: {
     enabled: true,
-    detector: { rotation: false, maxDetected: 10 },
+    detector: { rotation: false, maxDetected: 10, minConfidence: 0.5 },
     mesh: { enabled: true },
     iris: { enabled: true },
     description: { enabled: false },
@@ -116,7 +116,8 @@ const getElement = async (face, width, height, mask) => {
   });
   const material = new MeshPhongMaterial({
     map: texture,
-    wireframe: !texture
+    wireframe: !texture,
+    transparent: true
   });
   const mesh = new Mesh(faceGeometry, material);
   return mesh;
