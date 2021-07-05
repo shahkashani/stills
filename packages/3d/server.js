@@ -1,63 +1,82 @@
 const express = require('express');
 const app = express();
-const { writeFileSync, existsSync, mkdirSync } = require('fs');
+const { writeFileSync, existsSync, mkdirSync, readFileSync } = require('fs');
 const { sync } = require('glob');
 const { resolve, parse } = require('path');
-const Bundler = require('parcel-bundler');
 const DIST_FOLDER = resolve(__dirname, './dist');
+const MASKS_FOLDER = resolve(__dirname, './masks');
+const DEFAULT_INPUT_FOLDER = resolve(__dirname, './input');
+const OUTPUT_FOLDER = resolve(__dirname, './output');
 
-module.exports = async ({ port = 8080, input, isBuild = false } = {}) => {
-  const INPUT_FOLDER = input || resolve(__dirname, './input');
-  const OUTPUT_FOLDER = resolve(__dirname, './output');
+const getImages = (folder) => {
+  return sync('**/*.{jpg,jpeg,png,gif}', { cwd: folder }).map((image) => ({
+    name: parse(image).base,
+    url: `/${image}`,
+    path: `${folder}/${image}`
+  }));
+};
 
-  if (!existsSync(INPUT_FOLDER)) {
-    mkdirSync(INPUT_FOLDER);
+module.exports = async ({ port = 8080, config, static = [] } = {}) => {
+  let configObject;
+
+  if (!existsSync(DEFAULT_INPUT_FOLDER)) {
+    mkdirSync(DEFAULT_INPUT_FOLDER);
   }
 
   if (!existsSync(OUTPUT_FOLDER)) {
     mkdirSync(OUTPUT_FOLDER);
   }
 
-  const bundler = new Bundler(resolve(__dirname, './index.html'), {});
+  if (config) {
+    console.log('Reading config', config);
+    configObject = JSON.parse(readFileSync(config).toString());
+    console.log(JSON.stringify(configObject, null, 2));
+  } else {
+    configObject = {
+      images: getImages(DEFAULT_INPUT_FOLDER).map((image) => ({
+        ...image,
+        output: `${OUTPUT_FOLDER}/${image.name}`
+      })),
+      masks: getImages(MASKS_FOLDER),
+      opacity: 1
+    };
+  }
 
   app.use(
     express.static(
       resolve(__dirname, './node_modules/@vladmandic/human/models')
     )
   );
-  app.use(express.static(INPUT_FOLDER));
+
+  app.use(express.static(DEFAULT_INPUT_FOLDER));
   app.use(express.static(DIST_FOLDER));
+  app.use(express.static(MASKS_FOLDER));
+
+  static.forEach((s) => app.use(express.static(s)));
 
   app.use(express.json({ limit: '50mb' }));
 
-  app.get('/inputs', (req, res) => {
-    res.json(sync('**/*.{jpg,jpeg,png,gif}', { cwd: INPUT_FOLDER }));
+  app.get('/config', (req, res) => {
+    res.json(configObject);
   });
 
   app.post('/save', (req, res) => {
-    const filename = req.body.filename || 'out.png';
     const image = req.body.image;
-    const { name } = parse(filename);
-    const output = `${OUTPUT_FOLDER}/${name}.png`;
+    const output = req.body.output;
     writeFileSync(output, image, 'base64');
     console.log(`Saved ${output}`);
-    res.sendStatus(200);
+    res.json({
+      path: output,
+      url: `/${parse(output).name}`
+    });
   });
 
-  if (isBuild) {
-    app.use(bundler.middleware());
-  }
+  console.log(`👂 Listening on port ${port}`);
+  const server = app.listen(port);
 
-  return new Promise((resolve) => {
-    if (isBuild) {
-      bundler.once('bundled', () => {
-        console.log(`👂 Listening on port ${port}`);
-        const server = app.listen(port);
-        resolve(server);
-      });
-    } else {
-      console.log(`👂 Listening on port ${port}`);
-      resolve(app.listen(port));
-    }
-  });
+  const cleanup = async () => {
+    server.close();
+  };
+
+  return { app, server, cleanup };
 };
