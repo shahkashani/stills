@@ -2,235 +2,310 @@ const { unlinkSync } = require('fs');
 const { uniq, compact, map } = require('lodash');
 const pressAnyKey = require('press-any-key');
 const getImageInfo = require('./lib/utils/get-image-info');
+const Image = require('./lib/stills/image');
 
 const MAX_GENERATION_ATTEMPTS = 9;
 
-const validate = async (images, validators) => {
-  if (validators.length === 0) {
-    return true;
+class Stills {
+  constructor({
+    source,
+    content,
+    caption,
+    filters = [],
+    destinations = [],
+    validators = [],
+    taggers = [],
+    description = null,
+    isPrompt = false,
+    analysis = null,
+    passthrough = null,
+    num = null
+  } = {}) {
+    this.source = source;
+    this.content = content;
+    this.caption = caption;
+    this.filters = filters;
+    this.destinations = destinations;
+    this.validators = validators;
+    this.taggers = taggers;
+    this.description = description;
+    this.isPrompt = isPrompt;
+    this.analysis = analysis;
+    this.num = num;
+    this.passthrough = passthrough;
   }
-  const results = await Promise.all(
-    validators.map(async (validator) => {
-      for (const image of images) {
-        console.log(`🔍 Validating (${validator.name}) ${image}`);
-        if (!(await validator.validate(image))) {
-          console.log('😵 Validation failed');
-          return false;
-        } else {
-          console.log('👍 Validation passed');
-        }
-      }
+
+  async validate(images, validators) {
+    if (validators.length === 0) {
       return true;
-    })
-  );
-  return results.every((result) => result);
-};
-
-const generate = async ({
-  source,
-  content,
-  caption,
-  filters = [],
-  destinations = [],
-  validators = [],
-  taggers = [],
-  description = null,
-  isPrompt = false,
-  analysis = null,
-  passthrough = null,
-  num = null
-} = {}) => {
-  const result = {
-    filters: {},
-    destinations: {},
-    taggers: {},
-    source: null,
-    tags: [],
-    content: null,
-    description: null
-  };
-
-  if (passthrough && destinations) {
-    for (const destination of destinations) {
-      console.log(`\n🚀 Passing through to to ${destination.name}`);
-      if (destination.passthrough) {
-        const response = await destination.passthrough(passthrough);
-        if (response) {
-          result.destinations[destination.name] = response;
-        }
-        console.log(
-          `👀 Go check it out at ${'url' in response ? response.url : response}`
-        );
-      }
     }
-    return result;
-  }
-
-  if (caption && caption.getEpisodeName) {
-    console.log(`💬 Getting episode name from ${caption.name}`);
-  }
-
-  const episodeName =
-    caption && caption.getEpisodeName
-      ? await caption.getEpisodeName(await source.getAllNames())
-      : null;
-
-  const sourceResult = await source.get(episodeName);
-  const { input, output, name } = sourceResult;
-
-  result.source = sourceResult;
-
-  let isValid = false;
-  let images = null;
-  let captions = [];
-  let timestamps;
-  let lengths;
-  let numStills;
-
-  for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
-    if (caption) {
-      console.log(`💬 Getting captions from ${caption.name}`);
-      const captionResults = await caption.get(name);
-      captions = captionResults.captions;
-      timestamps = captionResults.timestamps;
-      lengths = captionResults.lengths;
-    }
-    numStills = captions.length || num || 1;
-    images = content.generate(input, output, numStills, timestamps, lengths);
-    isValid = await validate(images, validators);
-    if (!isValid) {
-      if (i === MAX_GENERATION_ATTEMPTS) {
-        console.log(`\n📯 Giving up on validators, sorry.`);
-      } else {
+    const results = await Promise.all(
+      validators.map(async (validator) => {
         for (const image of images) {
-          unlinkSync(image);
+          console.log(`🔍 Validating (${validator.name}) ${image}`);
+          if (!(await validator.validate(image))) {
+            console.log('😵 Validation failed');
+            return false;
+          } else {
+            console.log('👍 Validation passed');
+          }
         }
-        images = null;
-        captions = [];
-        timestamps = [];
+        return true;
+      })
+    );
+    return results.every((result) => result);
+  }
+
+  async generate() {
+    this.result = {
+      filters: {},
+      destinations: {},
+      taggers: {},
+      source: null,
+      tags: [],
+      content: null,
+      description: null
+    };
+
+    if (this.passthrough && this.destinations) {
+      for (const destination of this.destinations) {
+        console.log(`\n🚀 Passing through to to ${destination.name}`);
+        if (destination.passthrough) {
+          const response = await destination.passthrough(this.passthrough);
+          if (response) {
+            this.result.destinations[destination.name] = response;
+          }
+          console.log(
+            `👀 Go check it out at ${
+              'url' in response ? response.url : response
+            }`
+          );
+        }
+      }
+      return this.result;
+    }
+
+    if (this.caption && this.caption.getEpisodeName) {
+      console.log(`💬 Getting episode name from ${this.caption.name}`);
+    }
+
+    const episodeName =
+      this.caption && this.caption.getEpisodeName
+        ? await this.caption.getEpisodeName(await this.source.getAllNames())
+        : null;
+
+    const sourceResult = await this.source.get(episodeName);
+    const { input, output, name } = sourceResult;
+
+    this.result.source = sourceResult;
+
+    let isValid = false;
+    let images = null;
+    let captions = [];
+    let timestamps;
+    let lengths;
+    let numStills;
+
+    for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
+      if (this.caption) {
+        console.log(`💬 Getting captions from ${this.caption.name}`);
+        const captionResults = await this.caption.get(name);
+        captions = captionResults.captions;
+        timestamps = captionResults.timestamps;
+        lengths = captionResults.lengths;
+      }
+      numStills = captions.length || this.num || 1;
+      images = this.content.generate(
+        input,
+        output,
+        numStills,
+        timestamps,
+        lengths
+      );
+      isValid = await this.validate(images, this.validators);
+      if (!isValid) {
+        if (i === MAX_GENERATION_ATTEMPTS) {
+          console.log(`\n📯 Giving up on validators, sorry.`);
+        } else {
+          for (const image of images) {
+            unlinkSync(image);
+          }
+          images = null;
+          captions = [];
+          timestamps = [];
+        }
       }
     }
-  }
 
-  result.captions = captions;
-  result.timestamps = timestamps;
-  result.lengths = lengths;
-  result.content = images;
+    this.result.captions = captions;
+    this.result.timestamps = timestamps;
+    this.result.lengths = lengths;
+    this.result.content = images;
 
-  const imageInfo = (file) => getImageInfo(file);
+    const imageInfo = (file) => getImageInfo(file);
 
-  if (analysis) {
-    console.log(`🔬 Running image analysis with ${analysis.name}`);
-    result.analysis = await analysis.get(images, imageInfo);
-  }
+    // I think this can happen conditionally, i.e. if there are any filters that need to be applied
+    await this.prepare(images);
 
-  console.log('🌍 Results so far:', JSON.stringify(result, null, 2));
-
-  if (isPrompt) {
-    await pressAnyKey();
-  }
-
-  let i = 0;
-  const numImages = images.length;
-  for (const image of images) {
-    for (const filter of filters) {
-      console.log(`🎨 Applying filter ${filter.name} (image ${i + 1})`);
-      await filter.apply(image, imageInfo, i, numImages, result);
-      result.filters[filter.name] = true;
-    }
-    i += 1;
-  }
-
-  let text = null;
-
-  if (description) {
-    console.log(`\n📯 Generating description with ${description.name}`);
-    text = await description.get(images, result);
-    if (text) {
-      console.log(`🎉 Got description: ${text}`);
+    if (this.analysis) {
+      console.log(`🔬 Running image analysis with ${this.analysis.name}`);
+      this.result.analysis = await this.analysis.get(images, imageInfo);
     }
 
-    result.description = text;
-  }
+    console.log('🌍 Results so far:', JSON.stringify(this.result, null, 2));
 
-  const tags = [];
+    if (this.isPrompt) {
+      await pressAnyKey();
+    }
 
-  for (const tagger of taggers) {
-    const taggerResult = await tagger.get(result);
-    if (Array.isArray(taggerResult)) {
-      result.taggers[tagger.name] = taggerResult;
-      if (taggerResult.length > 0) {
+    await this.applyFilters();
+    await this.collapse();
+    await this.applyPostFilters();
+
+    let text = null;
+
+    if (this.description) {
+      console.log(`\n📯 Generating description with ${this.description.name}`);
+      text = await this.description.get(images, this.result);
+      if (text) {
+        console.log(`🎉 Got description: ${text}`);
+      }
+
+      this.result.description = text;
+    }
+
+    const tags = [];
+
+    for (const tagger of this.taggers) {
+      const taggerResult = await tagger.get(this.result);
+      if (Array.isArray(taggerResult)) {
+        this.result.taggers[tagger.name] = taggerResult;
+        if (taggerResult.length > 0) {
+          console.log(
+            `🏷️  Tagging using ${tagger.name}: ${taggerResult.join(', ')}`
+          );
+          tags.push.apply(tags, taggerResult);
+        }
+      } else {
         console.log(
-          `🏷️  Tagging using ${tagger.name}: ${taggerResult.join(', ')}`
+          `🤷 Tagger ${tagger.name} did not return an array:`,
+          taggerResult
         );
-        tags.push.apply(tags, taggerResult);
       }
-    } else {
+    }
+
+    this.result.tags = tags;
+
+    if (this.isPrompt && this.destinations && this.destinations.length > 0) {
+      await pressAnyKey();
+    }
+
+    for (const destination of this.destinations) {
+      console.log(`\n🚀 Publishing to ${destination.name}`);
+      const response = await destination.publish(
+        images,
+        {
+          tags,
+          text
+        },
+        this.result
+      );
+      if (response) {
+        this.result.destinations[destination.name] = response;
+      }
       console.log(
-        `🤷 Tagger ${tagger.name} did not return an array:`,
-        taggerResult
+        `👀 Go check it out at ${'url' in response ? response.url : response}`
       );
     }
+
+    return this.result;
   }
 
-  result.tags = tags;
-
-  if (isPrompt && destinations && destinations.length > 0) {
-    await pressAnyKey();
-  }
-
-  for (const destination of destinations) {
-    console.log(`\n🚀 Publishing to ${destination.name}`);
-    const response = await destination.publish(
-      images,
-      {
-        tags,
-        text
-      },
-      result
-    );
-    if (response) {
-      result.destinations[destination.name] = response;
-    }
-    console.log(
-      `👀 Go check it out at ${'url' in response ? response.url : response}`
+  async prepare(images) {
+    this.images = await Promise.all(
+      images.map(async (filename) => {
+        const image = new Image({ filename });
+        await image.prepare();
+        return image;
+      })
     );
   }
 
-  return result;
-};
-
-const generateChain = async (configs) => {
-  const results = [];
-  let lastResult = null;
-  for (let config of configs) {
-    if (typeof config === 'function') {
-      config = await config(lastResult, results);
+  async collapse() {
+    for (const image of this.images) {
+      await image.collapse();
     }
-    lastResult = config ? await generate(config) : null;
-    results.push(lastResult);
-  }
-  return results;
-};
-
-const deleteStills = (results) => {
-  const files = Array.isArray(results)
-    ? uniq(compact(map(results, 'content')))
-    : results.content;
-
-  if (!Array.isArray(files)) {
-    return;
   }
 
-  files.forEach((file) => {
-    unlinkSync(file);
-  });
-};
+  async applyFilters() {
+    const result = this.result;
+    const numImages = this.images.length;
+    let numImage = 0;
+    for (const image of this.images) {
+      console.log(`🎨 Processing image ${numImage + 1}`);
+      const frames = image.getFrames();
+      const numFrames = frames.length;
+      let numFrame = 0;
+      for (const frame of frames) {
+        console.log(`⮑  🎞  Frame ${numFrame + 1}`);
+        for (const filter of this.filters) {
+          if (filter.applyFrame) {
+            console.log(`⮑  💅 ${filter.name}`);
+            await filter.applyFrame(frame, {
+              numFrame,
+              numFrames,
+              numImages,
+              numImage,
+              result
+            });
+            this.result.filters[filter.name] = true;
+          }
+        }
+        numFrame += 1;
+      }
+      numImage += 1;
+    }
+  }
+
+  async applyPostFilters() {
+    const result = this.result;
+    const numImages = this.images.length;
+    let numImage = 0;
+    for (const image of this.images) {
+      console.log(`🎨 Post-processing image ${numImage + 1}`);
+      for (const filter of this.filters) {
+        if (filter.applyFrames) {
+          console.log(`⮑  💅💅 ${filter.name}`);
+          await filter.applyFrames(image.frames, {
+            numImages,
+            numImage,
+            result
+          });
+          this.result.filters[filter.name] = true;
+        }
+      }
+      numImage += 1;
+    }
+  }
+
+  deleteStills() {
+    const result = this.result;
+    const files = Array.isArray(result)
+      ? uniq(compact(map(result, 'content')))
+      : result.content;
+
+    if (!Array.isArray(files)) {
+      return;
+    }
+
+    files.forEach((file) => {
+      unlinkSync(file);
+    });
+  }
+}
 
 module.exports = {
-  generate,
-  generateChain,
-  deleteStills,
+  Stills: Stills,
   filters: require('./lib/filters'),
   sources: require('./lib/sources'),
   content: require('./lib/content'),
