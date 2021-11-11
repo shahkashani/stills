@@ -305,7 +305,7 @@ class Stills {
 }
 
 module.exports = {
-  Stills: Stills,
+  Stills,
   filters: require('./lib/filters'),
   sources: require('./lib/sources'),
   content: require('./lib/content'),
