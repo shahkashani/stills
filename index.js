@@ -1,7 +1,6 @@
 const { unlinkSync } = require('fs');
 const { uniq, compact, map } = require('lodash');
 const pressAnyKey = require('press-any-key');
-const getImageInfo = require('./lib/utils/get-image-info');
 const Image = require('./lib/stills/image');
 
 const MAX_GENERATION_ATTEMPTS = 9;
@@ -33,30 +32,7 @@ class Stills {
     this.analysis = analysis;
     this.num = num;
     this.passthrough = passthrough;
-  }
 
-  async validate(images, validators) {
-    if (validators.length === 0) {
-      return true;
-    }
-    const results = await Promise.all(
-      validators.map(async (validator) => {
-        for (const image of images) {
-          console.log(`🔍 Validating (${validator.name}) ${image}`);
-          if (!(await validator.validate(image))) {
-            console.log('😵 Validation failed');
-            return false;
-          } else {
-            console.log('👍 Validation passed');
-          }
-        }
-        return true;
-      })
-    );
-    return results.every((result) => result);
-  }
-
-  async generate() {
     this.result = {
       filters: {},
       destinations: {},
@@ -66,7 +42,9 @@ class Stills {
       content: null,
       description: null
     };
+  }
 
+  async generate() {
     if (this.passthrough && this.destinations) {
       for (const destination of this.destinations) {
         console.log(`\n🚀 Passing through to to ${destination.name}`);
@@ -85,71 +63,11 @@ class Stills {
       return this.result;
     }
 
-    if (this.caption && this.caption.getEpisodeName) {
-      console.log(`💬 Getting episode name from ${this.caption.name}`);
-    }
-
-    const episodeName =
-      this.caption && this.caption.getEpisodeName
-        ? await this.caption.getEpisodeName(await this.source.getAllNames())
-        : null;
-
-    const sourceResult = await this.source.get(episodeName);
-    const { input, output, name } = sourceResult;
-
-    this.result.source = sourceResult;
-
-    let isValid = false;
-    let images = null;
-    let captions = [];
-    let timestamps;
-    let lengths;
-    let numStills;
-
-    for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
-      if (this.caption) {
-        console.log(`💬 Getting captions from ${this.caption.name}`);
-        const captionResults = await this.caption.get(name);
-        captions = captionResults.captions;
-        timestamps = captionResults.timestamps;
-        lengths = captionResults.lengths;
-      }
-      numStills = captions.length || this.num || 1;
-      images = this.content.generate(
-        input,
-        output,
-        numStills,
-        timestamps,
-        lengths
-      );
-      isValid = await this.validate(images, this.validators);
-      if (!isValid) {
-        if (i === MAX_GENERATION_ATTEMPTS) {
-          console.log(`\n📯 Giving up on validators, sorry.`);
-        } else {
-          for (const image of images) {
-            unlinkSync(image);
-          }
-          images = null;
-          captions = [];
-          timestamps = [];
-        }
-      }
-    }
-
-    this.result.captions = captions;
-    this.result.timestamps = timestamps;
-    this.result.lengths = lengths;
-    this.result.content = images;
-
-    const imageInfo = (file) => getImageInfo(file);
-
-    // I think this can happen conditionally, i.e. if there are any filters that need to be applied
-    await this.prepare(images);
+    await this.setup();
 
     if (this.analysis) {
       console.log(`🔬 Running image analysis with ${this.analysis.name}`);
-      this.result.analysis = await this.analysis.get(images, imageInfo);
+      this.result.analysis = await this.analysis.get(images);
     }
 
     console.log('🌍 Results so far:', JSON.stringify(this.result, null, 2));
@@ -159,8 +77,6 @@ class Stills {
     }
 
     await this.applyFilters();
-    await this.collapse();
-    await this.applyPostFilters();
 
     let text = null;
 
@@ -221,6 +137,114 @@ class Stills {
     return this.result;
   }
 
+  async validate(images, validators) {
+    if (validators.length === 0) {
+      return true;
+    }
+    const results = await Promise.all(
+      validators.map(async (validator) => {
+        for (const image of images) {
+          console.log(`🔍 Validating (${validator.name}) ${image}`);
+          if (!(await validator.validate(image))) {
+            console.log('😵 Validation failed');
+            return false;
+          } else {
+            console.log('👍 Validation passed');
+          }
+        }
+        return true;
+      })
+    );
+    return results.every((result) => result);
+  }
+
+  async getEpisodeName() {
+    if (!this.caption || !this.caption.getEpisodeName) {
+      return null;
+    }
+    console.log(`💬 Getting episode name from ${this.caption.name}`);
+    return await this.caption.getEpisodeName(await this.source.getAllNames());
+  }
+
+  async getSource() {
+    const episodeName = await this.getEpisodeName();
+    return await this.source.get(episodeName);
+  }
+
+  async generateImages(input, output, name) {
+    let isValid = false;
+    let images = null;
+    let captions = [];
+    let timestamps;
+    let lengths;
+    let numStills;
+
+    for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
+      if (this.caption) {
+        console.log(`💬 Getting captions from ${this.caption.name}`);
+        const captionResults = await this.caption.get(name);
+        captions = captionResults.captions;
+        timestamps = captionResults.timestamps;
+        lengths = captionResults.lengths;
+      }
+      numStills = captions.length || this.num || 1;
+      images = this.content.generate(
+        input,
+        output,
+        numStills,
+        timestamps,
+        lengths
+      );
+      isValid = await this.validate(images, this.validators);
+      if (!isValid) {
+        if (i === MAX_GENERATION_ATTEMPTS) {
+          console.log(`\n📯 Giving up on validators, sorry.`);
+        } else {
+          for (const image of images) {
+            unlinkSync(image);
+          }
+          images = null;
+          captions = [];
+          timestamps = [];
+        }
+      }
+    }
+    return {
+      captions,
+      timestamps,
+      lengths,
+      images
+    };
+  }
+
+  async setup() {
+    const source = await this.getSource();
+    const { input, output, name } = source;
+    const { images, timestamps, lengths, captions } = await this.generateImages(
+      input,
+      output,
+      name
+    );
+    const project = {
+      source,
+      images,
+      lengths,
+      timestamps,
+      captions
+    };
+    await this.restore(project);
+    return project;
+  }
+
+  async restore({ source, images, timestamps, lengths, captions }) {
+    this.result.source = source;
+    this.result.captions = captions;
+    this.result.timestamps = timestamps;
+    this.result.lengths = lengths;
+    this.result.content = images;
+    await this.prepare(images);
+  }
+
   async prepare(images) {
     this.images = await Promise.all(
       images.map(async (filename) => {
@@ -237,7 +261,25 @@ class Stills {
     }
   }
 
+  async delete() {
+    for (const image of this.images) {
+      await image.delete();
+    }
+  }
+
+  async reset() {
+    for (const image of this.images) {
+      await image.reset();
+    }
+  }
+
   async applyFilters() {
+    await this.applyFrameFilters();
+    await this.collapse();
+    await this.applyFramesFilters();
+  }
+
+  async applyFrameFilters() {
     const result = this.result;
     const numImages = this.images.length;
     let numImage = 0;
@@ -245,29 +287,30 @@ class Stills {
       console.log(`🎨 Processing image ${numImage + 1}`);
       const frames = image.getFrames();
       const numFrames = frames.length;
-      let numFrame = 0;
-      for (const frame of frames) {
+      for (let numFrame = 0; numFrame < numFrames; numFrame += 1) {
         console.log(`⮑  🎞  Frame ${numFrame + 1}`);
         for (const filter of this.filters) {
           if (filter.applyFrame) {
             console.log(`⮑  💅 ${filter.name}`);
+            const frame = frames[numFrame];
+            const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
             await filter.applyFrame(frame, {
               numFrame,
               numFrames,
               numImages,
               numImage,
-              result
+              result,
+              prevFrame
             });
             this.result.filters[filter.name] = true;
           }
         }
-        numFrame += 1;
       }
       numImage += 1;
     }
   }
 
-  async applyPostFilters() {
+  async applyFramesFilters() {
     const result = this.result;
     const numImages = this.images.length;
     let numImage = 0;
