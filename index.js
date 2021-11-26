@@ -65,24 +65,34 @@ class Stills {
 
     await this.setup();
 
-    if (this.analysis) {
-      console.log(`🔬 Running image analysis with ${this.analysis.name}`);
-      this.result.analysis = await this.analysis.get(images);
-    }
-
-    console.log('🌍 Results so far:', JSON.stringify(this.result, null, 2));
-
     if (this.isPrompt) {
       await pressAnyKey();
     }
 
-    await this.applyFilters();
 
+    await this.applyFilters();
+    await this.generateMetaInfo();
+
+    if (this.isPrompt && this.destinations && this.destinations.length > 0) {
+      await pressAnyKey();
+    }
+
+    await this.post();
+    return this.result;
+  }
+
+  async generateMetaInfo() {
     let text = null;
+
+    if (this.analysis) {
+      console.log(`🔬 Running image analysis with ${this.analysis.name}`);
+      this.result.analysis = await this.analysis.get(this.images);
+      console.log('🌍 Analysis results:', JSON.stringify(this.result, null, 2));
+    }
 
     if (this.description) {
       console.log(`\n📯 Generating description with ${this.description.name}`);
-      text = await this.description.get(images, this.result);
+      text = await this.description.get(this.images, this.result);
       if (text) {
         console.log(`🎉 Got description: ${text}`);
       }
@@ -111,18 +121,17 @@ class Stills {
     }
 
     this.result.tags = tags;
+  }
 
-    if (this.isPrompt && this.destinations && this.destinations.length > 0) {
-      await pressAnyKey();
-    }
-
+  async post() {
+    const { tags, description } = this.result;
     for (const destination of this.destinations) {
       console.log(`\n🚀 Publishing to ${destination.name}`);
       const response = await destination.publish(
-        images,
+        this.images,
         {
           tags,
-          text
+          text: description
         },
         this.result
       );
@@ -133,8 +142,6 @@ class Stills {
         `👀 Go check it out at ${'url' in response ? response.url : response}`
       );
     }
-
-    return this.result;
   }
 
   async validate(images, validators) {
