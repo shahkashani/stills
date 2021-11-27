@@ -302,6 +302,7 @@ class Stills {
             const frame = frames[numFrame];
             const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
             await filter.applyFrame(frame, {
+              image,
               numFrame,
               numFrames,
               numImages,
