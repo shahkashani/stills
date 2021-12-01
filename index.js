@@ -10,7 +10,9 @@ class Stills {
     source,
     content,
     caption,
+    filterCaption,
     filters = [],
+    imageFilters = [],
     destinations = [],
     validators = [],
     taggers = [],
@@ -23,7 +25,10 @@ class Stills {
     this.source = source;
     this.content = content;
     this.caption = caption;
+    // @todo Use this instead of pulling from the filters array
+    this.filterCaption = filterCaption;
     this.filters = filters;
+    this.imageFilters = imageFilters;
     this.destinations = destinations;
     this.validators = validators;
     this.taggers = taggers;
@@ -68,7 +73,6 @@ class Stills {
     if (this.isPrompt) {
       await pressAnyKey();
     }
-
 
     await this.applyFilters();
     await this.generateMetaInfo();
@@ -296,7 +300,13 @@ class Stills {
       const numFrames = frames.length;
       for (let numFrame = 0; numFrame < numFrames; numFrame += 1) {
         console.log(`⮑  🎞  Frame ${numFrame + 1}`);
-        for (const filter of this.filters) {
+        const filters =
+          Array.isArray(this.imageFilters) &&
+          Array.isArray(this.imageFilters[numImage])
+            ? [...this.imageFilters[numImage], ...this.filters]
+            : this.filters;
+
+        for (const filter of filters) {
           if (filter.applyFrame) {
             console.log(`⮑  💅 ${filter.name}`);
             const frame = frames[numFrame];
