@@ -19,9 +19,7 @@
     ]
   },
   "scripts": {
-    "test": "./node_modules/.bin/jest",
-    "postinstall": "cd packages/3d && npm install",
-    "prepare": "cd packages/3d && npm run build"
+    "test": "./node_modules/.bin/jest"
   },
   "author": "Shah Kashani",
   "license": "MIT",
