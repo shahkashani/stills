@@ -258,8 +258,8 @@ class Stills {
 
   async prepare(images) {
     this.images = await Promise.all(
-      images.map(async (filename) => {
-        const image = new Image({ filename });
+      images.map(async (content) => {
+        const image = new Image({ filename: content.file });
         await image.prepare();
         return image;
       })
@@ -353,7 +353,7 @@ class Stills {
     const result = this.result;
     const files = Array.isArray(result)
       ? uniq(compact(map(result, 'content')))
-      : result.content;
+      : map(result.content, 'file');
 
     if (!Array.isArray(files)) {
       return;
