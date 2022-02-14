@@ -51,7 +51,6 @@
     "rake-js": "^0.1.1",
     "readimage": "^1.1.1",
     "sbd": "^1.0.18",
-    "sharp": "github:lovell/sharp",
     "shelljs": "^0.8.4",
     "string-similarity": "^4.0.4",
     "tinycolor2": "^1.4.2",
