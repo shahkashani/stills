@@ -154,7 +154,8 @@ class Stills {
     }
     const results = await Promise.all(
       validators.map(async (validator) => {
-        for (const image of images) {
+        for (const content of images) {
+          const image = content.file;
           console.log(`🔍 Validating (${validator.name}) ${image}`);
           if (!(await validator.validate(image))) {
             console.log('😵 Validation failed');
@@ -212,7 +213,7 @@ class Stills {
           console.log(`\n📯 Giving up on validators, sorry.`);
         } else {
           for (const image of images) {
-            unlinkSync(image);
+            unlinkSync(image.file);
           }
           images = null;
           captions = [];
