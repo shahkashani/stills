@@ -364,6 +364,10 @@ class Stills {
       unlinkSync(file);
     });
   }
+
+  async replaceImage(index, newFileName) {
+    await this.images[index].replace(newFileName);
+  }
 }
 
 module.exports = {
