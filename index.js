@@ -368,6 +368,10 @@ class Stills {
   async replaceImage(index, newFileName) {
     await this.images[index].replace(newFileName);
   }
+
+  async replaceFrame(index, frame, newFileName) {
+    await this.images[index].replaceFrame(frame, newFileName);
+  }
 }
 
 module.exports = {
