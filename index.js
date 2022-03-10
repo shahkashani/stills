@@ -338,11 +338,14 @@ class Stills {
       for (const filter of this.filters) {
         if (filter.applyFrames) {
           console.log(`⮑  💅💅 ${filter.name}`);
-          await filter.applyFrames(image.frames, {
+          const filterResult = await filter.applyFrames(image.frames, {
             numImages,
             numImage,
             result
           });
+          if (filterResult.newCaptions) {
+            this.result.captions = filterResult.newCaptions;
+          }
           this.result.filters[filter.name] = true;
         }
       }
