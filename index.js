@@ -343,7 +343,7 @@ class Stills {
             numImage,
             result
           });
-          if (filterResult.newCaptions) {
+          if (filterResult && filterResult.newCaptions) {
             this.result.captions = filterResult.newCaptions;
           }
           this.result.filters[filter.name] = true;
