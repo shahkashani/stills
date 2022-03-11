@@ -12,6 +12,7 @@ class Stills {
     caption,
     filterCaption,
     filters = [],
+    filterSkipFrames = [],
     imageFilters = [],
     destinations = [],
     validators = [],
@@ -25,10 +26,10 @@ class Stills {
     this.source = source;
     this.content = content;
     this.caption = caption;
-    // @todo Use this instead of pulling from the filters array
     this.filterCaption = filterCaption;
     this.filters = filters;
     this.imageFilters = imageFilters;
+    this.filterSkipFrames = filterSkipFrames;
     this.destinations = destinations;
     this.validators = validators;
     this.taggers = taggers;
@@ -301,27 +302,49 @@ class Stills {
       const numFrames = frames.length;
       for (let numFrame = 0; numFrame < numFrames; numFrame += 1) {
         console.log(`⮑  🎞  Frame ${numFrame + 1}`);
+
+        if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
+          console.log('Skipping.');
+          continue;
+        }
+
         const filters =
           Array.isArray(this.imageFilters) &&
           Array.isArray(this.imageFilters[numImage])
             ? [...this.imageFilters[numImage], ...this.filters]
             : this.filters;
 
+        const frame = frames[numFrame];
+        const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
+
+        const data = {
+          image,
+          numFrame,
+          numFrames,
+          numImages,
+          numImage,
+          prevFrame
+        };
         for (const filter of filters) {
           if (filter.applyFrame) {
             console.log(`⮑  💅 ${filter.name}`);
-            const frame = frames[numFrame];
-            const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
-            await filter.applyFrame(frame, {
-              image,
-              numFrame,
-              numFrames,
-              numImages,
-              numImage,
-              result,
-              prevFrame
-            });
+            await filter.applyFrame(frame, data);
             this.result.filters[filter.name] = true;
+          }
+        }
+        if (this.filterCaption) {
+          // @todo This should maybe iterate over the captions
+          // Also, this might have to be applied after applyFramesFilters
+          // since right now some filters can run after the captions
+          const caption = result.captions[numImage][0];
+          const captionResult = await this.filterCaption.apply(
+            frame,
+            caption,
+            data
+          );
+          if (captionResult) {
+            console.log(`✍️  Changing captions to`, captionResult);
+            this.result.captions[numImage] = [captionResult];
           }
         }
       }
@@ -338,14 +361,11 @@ class Stills {
       for (const filter of this.filters) {
         if (filter.applyFrames) {
           console.log(`⮑  💅💅 ${filter.name}`);
-          const filterResult = await filter.applyFrames(image.frames, {
+          await filter.applyFrames(image.frames, {
             numImages,
             numImage,
             result
           });
-          if (filterResult && filterResult.newCaptions) {
-            this.result.captions = filterResult.newCaptions;
-          }
           this.result.filters[filter.name] = true;
         }
       }
