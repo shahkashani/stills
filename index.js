@@ -21,7 +21,8 @@ class Stills {
     isPrompt = false,
     analysis = null,
     passthrough = null,
-    num = null
+    num = null,
+    useGlyphs = false
   } = {}) {
     this.source = source;
     this.content = content;
@@ -37,6 +38,7 @@ class Stills {
     this.isPrompt = isPrompt;
     this.analysis = analysis;
     this.num = num;
+    this.useGlyphs = useGlyphs;
     this.passthrough = passthrough;
 
     this.result = {
@@ -97,7 +99,11 @@ class Stills {
 
     if (this.description) {
       console.log(`\n📯 Generating description with ${this.description.name}`);
-      text = await this.description.get(this.images, this.result);
+      text = await this.description.get(
+        this.images,
+        this.result,
+        this.useGlyphs
+      );
       if (text) {
         console.log(`🎉 Got description: ${text}`);
       }
@@ -108,7 +114,7 @@ class Stills {
     const tags = [];
 
     for (const tagger of this.taggers) {
-      const taggerResult = await tagger.get(this.result);
+      const taggerResult = await tagger.get(this.result, this.useGlyphs);
       if (Array.isArray(taggerResult)) {
         this.result.taggers[tagger.name] = taggerResult;
         if (taggerResult.length > 0) {
@@ -138,7 +144,8 @@ class Stills {
           tags,
           text: description
         },
-        this.result
+        this.result,
+        this.useGlyphs
       );
       if (response) {
         this.result.destinations[destination.name] = response;
@@ -342,10 +349,6 @@ class Stills {
             caption,
             data
           );
-          if (captionResult) {
-            console.log(`✍️  Changing captions to`, captionResult);
-            this.result.captions[numImage] = [captionResult];
-          }
         }
       }
       numImage += 1;
@@ -394,6 +397,11 @@ class Stills {
 
   async replaceFrame(index, frame, newFileName) {
     await this.images[index].replaceFrame(frame, newFileName);
+  }
+
+  async deleteFrame(index, frame) {
+    console.log(`🗑 Deleting frame ${frame} of image ${index}`);
+    await this.images[index].deleteFrame(frame);
   }
 }
 
