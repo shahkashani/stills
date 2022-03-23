@@ -339,16 +339,16 @@ class Stills {
             this.result.filters[filter.name] = true;
           }
         }
-        if (this.filterCaption) {
+        if (
+          this.filterCaption &&
+          Array.isArray(result.captions) &&
+          Array.isArray(result.captions[numImage])
+        ) {
           // @todo This should maybe iterate over the captions
           // Also, this might have to be applied after applyFramesFilters
           // since right now some filters can run after the captions
           const caption = result.captions[numImage][0];
-          const captionResult = await this.filterCaption.apply(
-            frame,
-            caption,
-            data
-          );
+          await this.filterCaption.apply(frame, caption, data);
         }
       }
       numImage += 1;
