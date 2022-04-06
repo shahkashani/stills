@@ -22,7 +22,8 @@ class Stills {
     analysis = null,
     passthrough = null,
     num = null,
-    useGlyphs = false
+    useGlyphs = false,
+    minFaceConfidence = 0.4
   } = {}) {
     this.source = source;
     this.content = content;
@@ -40,6 +41,7 @@ class Stills {
     this.num = num;
     this.useGlyphs = useGlyphs;
     this.passthrough = passthrough;
+    this.minFaceConfidence = minFaceConfidence;
 
     this.result = {
       filters: {},
@@ -268,7 +270,10 @@ class Stills {
   async prepare(images) {
     this.images = await Promise.all(
       images.map(async (content) => {
-        const image = new Image({ filename: content.file });
+        const image = new Image({
+          filename: content.file,
+          minFaceConfidence: this.minFaceConfidence
+        });
         await image.prepare();
         return image;
       })
