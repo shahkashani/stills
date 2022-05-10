@@ -23,7 +23,7 @@ class Stills {
     passthrough = null,
     num = null,
     useGlyphs = false,
-    minFaceConfidence = 0.4
+    minFaceConfidence = 0.2
   } = {}) {
     this.source = source;
     this.content = content;
@@ -287,8 +287,12 @@ class Stills {
   }
 
   async delete() {
-    for (const image of this.images) {
-      await image.delete();
+    try {
+      for (const image of this.images) {
+        await image.delete();
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 
