@@ -425,5 +425,6 @@ module.exports = {
   descriptions: require('./lib/descriptions'),
   analysis: require('./lib/analysis'),
   utils: require('./lib/utils'),
-  captions: require('./lib/captions')
+  captions: require('./lib/captions'),
+  moderation: require('./lib/moderation')
 };
