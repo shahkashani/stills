@@ -23,7 +23,7 @@ class Stills {
     passthrough = null,
     num = null,
     useGlyphs = false,
-    minFaceConfidence = 0.2
+    minFaceConfidence = 0.5
   } = {}) {
     this.source = source;
     this.content = content;
@@ -254,17 +254,82 @@ class Stills {
       timestamps,
       captions
     };
+    console.log(project);
     await this.restore(project);
     return project;
   }
 
-  async restore({ source, images, timestamps, lengths, captions }) {
+  async smartSetup() {
+    console.log(`✨ Running smart setup!`);
+
+    const source = await this.getSource();
+    const { input, output, name } = source;
+    let captions = [];
+    let startTime = null;
+
+    if (this.caption) {
+      console.log(`💬 Getting captions from ${this.caption.name}`);
+      const captionResults = await this.caption.get(name);
+      captions = captionResults.captions;
+    }
+
+    const results = [];
+    const images = [];
+    const numStills = captions.length || this.num || 1;
+    const skipLength = (this.content.duration || 2) + this.content.secondsApart;
+
+    while (results.length < numStills) {
+      const timestamps = startTime ? [startTime] : undefined;
+      const [content] = this.content.generate(input, output, 1, timestamps);
+
+      if (!startTime) {
+        startTime = content.time;
+      }
+
+      const image = new Image({
+        filename: content.file,
+        minFaceConfidence: this.minFaceConfidence
+      });
+
+      await image.prepare();
+
+      if (await image.isAcceptable()) {
+        console.log('🎉 This image is acceptable!');
+        images.push(content);
+        results.push(image);
+      } else {
+        console.log(
+          `🧐 This image is not acceptable. Skipping to ${startTime + skipLength}s.`
+        );
+        image.delete();
+      }
+      startTime += skipLength;
+    }
+
+    this.images = results;
+
+    const project = {
+      source,
+      images,
+      captions
+    };
+
+    await this.restore(project, false);
+    return project;
+  }
+
+  async restore(
+    { source, images, timestamps, lengths, captions },
+    isPrepare = true
+  ) {
     this.result.source = source;
     this.result.captions = captions;
     this.result.timestamps = timestamps;
     this.result.lengths = lengths;
     this.result.content = images;
-    await this.prepare(images);
+    if (isPrepare) {
+      await this.prepare(images);
+    }
   }
 
   async prepare(images) {
@@ -316,6 +381,18 @@ class Stills {
       console.log(`🎨 Processing image ${numImage + 1}`);
       const frames = image.getFrames();
       const numFrames = frames.length;
+
+      const hasImageFilters =
+        Array.isArray(this.imageFilters) &&
+        Array.isArray(this.imageFilters[numImage]) &&
+        this.imageFilters[numImage].length > 0;
+      if (hasImageFilters) {
+        console.log(
+          '💅 This image has some specific filters',
+          this.imageFilters[numImage]
+        );
+      }
+
       for (let numFrame = 0; numFrame < numFrames; numFrame += 1) {
         console.log(`⮑  🎞  Frame ${numFrame + 1}`);
 
@@ -324,11 +401,9 @@ class Stills {
           continue;
         }
 
-        const filters =
-          Array.isArray(this.imageFilters) &&
-          Array.isArray(this.imageFilters[numImage])
-            ? [...this.imageFilters[numImage], ...this.filters]
-            : this.filters;
+        const filters = hasImageFilters
+          ? [...this.imageFilters[numImage], ...this.filters]
+          : this.filters;
 
         const frame = frames[numFrame];
         const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
