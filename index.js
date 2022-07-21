@@ -299,7 +299,9 @@ class Stills {
         results.push(image);
       } else {
         console.log(
-          `🧐 This image is not acceptable. Skipping to ${startTime + skipLength}s.`
+          `🧐 This image is not acceptable. Skipping to ${
+            startTime + skipLength
+          }s.`
         );
         image.delete();
       }
