@@ -37,6 +37,7 @@
     "compromise-strict": "0.0.2",
     "dotenv": "^8.2.0",
     "face-api.js": "^0.22.2",
+    "geometric": "^2.2.10",
     "glob": "^7.1.6",
     "image-output": "^2.4.2",
     "jest": "^27.0.4",
