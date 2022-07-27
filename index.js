@@ -2,6 +2,7 @@ const { unlinkSync } = require('fs');
 const { uniq, compact, map } = require('lodash');
 const pressAnyKey = require('press-any-key');
 const Image = require('./lib/stills/image');
+const { Streaks } = require('./lib/validators');
 
 const MAX_GENERATION_ATTEMPTS = 9;
 
@@ -263,6 +264,7 @@ class Stills {
     console.log(`✨ Running smart setup!`);
 
     const source = await this.getSource();
+    const streaks = new Streaks();
     const { input, output, name } = source;
     let captions = [];
     let startTime = null;
@@ -293,7 +295,7 @@ class Stills {
 
       await image.prepare();
 
-      if (await image.isAcceptable()) {
+      if (await streaks.validate(image)) {
         console.log('🎉 This image is acceptable!');
         images.push(content);
         results.push(image);
@@ -353,10 +355,10 @@ class Stills {
     }
   }
 
-  async delete() {
+  async delete(deleteFramesOnly = false) {
     try {
       for (const image of this.images) {
-        await image.delete();
+        await image.delete(deleteFramesOnly);
       }
     } catch (err) {
       console.error(err);
@@ -396,7 +398,11 @@ class Stills {
       }
 
       for (let numFrame = 0; numFrame < numFrames; numFrame += 1) {
-        console.log(`⮑  🎞  Frame ${numFrame + 1}`);
+        console.log(
+          `⮑  🎞  Frame ${numFrame + 1} (${Math.floor(
+            (100 * numFrame) / numFrames
+          )}%)`
+        );
 
         if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
           console.log('Skipping.');
