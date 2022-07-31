@@ -24,7 +24,8 @@ class Stills {
     passthrough = null,
     num = null,
     useGlyphs = false,
-    minFaceConfidence = 0.5
+    minFaceConfidence = 0.5,
+    isTimeMeasured = true
   } = {}) {
     this.source = source;
     this.content = content;
@@ -43,6 +44,7 @@ class Stills {
     this.useGlyphs = useGlyphs;
     this.passthrough = passthrough;
     this.minFaceConfidence = minFaceConfidence;
+    this.isTimeMeasured = isTimeMeasured;
 
     this.result = {
       filters: {},
@@ -260,11 +262,15 @@ class Stills {
     return project;
   }
 
-  async smartSetup() {
+  async smartSetup({
+    enableValidator = true,
+    validatorOptions,
+    framesOptions
+  } = {}) {
     console.log(`✨ Running smart setup!`);
 
     const source = await this.getSource();
-    const streaks = new Streaks();
+    const streaks = new Streaks(validatorOptions);
     const { input, output, name } = source;
     let captions = [];
     let startTime = null;
@@ -289,13 +295,14 @@ class Stills {
       }
 
       const image = new Image({
+        framesOptions,
         filename: content.file,
         minFaceConfidence: this.minFaceConfidence
       });
 
       await image.prepare();
 
-      if (await streaks.validate(image)) {
+      if (!enableValidator || (await streaks.validate(image))) {
         console.log('🎉 This image is acceptable!');
         images.push(content);
         results.push(image);
@@ -427,7 +434,11 @@ class Stills {
         for (const filter of filters) {
           if (filter.applyFrame) {
             console.log(`⮑  💅 ${filter.name}`);
+            const now = Date.now();
             await filter.applyFrame(frame, data);
+            if (this.isTimeMeasured) {
+              console.log(`⮑  🏁 ${filter.name}: ${Date.now() - now}ms`);
+            }
             this.result.filters[filter.name] = true;
           }
         }
