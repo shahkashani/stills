@@ -56,7 +56,7 @@
     "readimage": "^1.1.1",
     "sbd": "^1.0.18",
     "sharp": "^0.30.7",
-    "shelljs": "^0.8.4",
+    "shelljs": "^0.8.5",
     "stackblur-canvas": "^2.5.0",
     "string-similarity": "^4.0.4",
     "svgdom": "^0.1.10",
