@@ -55,6 +55,7 @@
     "readimage": "^1.1.1",
     "sbd": "^1.0.18",
     "shelljs": "^0.8.4",
+    "stackblur-canvas": "^2.5.0",
     "string-similarity": "^4.0.4",
     "tinycolor2": "^1.4.2",
     "tumblr.js": "^2.0.2",

@@ -25,6 +25,7 @@ class Stills {
     num = null,
     useGlyphs = false,
     minFaceConfidence = 0.5,
+    startFrame = null,
     isTimeMeasured = true
   } = {}) {
     this.source = source;
@@ -45,6 +46,7 @@ class Stills {
     this.passthrough = passthrough;
     this.minFaceConfidence = minFaceConfidence;
     this.isTimeMeasured = isTimeMeasured;
+    this.startFrame = startFrame;
 
     this.result = {
       filters: {},
@@ -272,6 +274,7 @@ class Stills {
     const source = await this.getSource();
     const streaks = new Streaks(validatorOptions);
     const { input, output, name } = source;
+
     let captions = [];
     let startTime = null;
 
@@ -286,35 +289,48 @@ class Stills {
     const numStills = captions.length || this.num || 1;
     const skipLength = (this.content.duration || 2) + this.content.secondsApart;
 
-    while (results.length < numStills) {
-      const timestamps = startTime ? [startTime] : undefined;
-      const [content] = this.content.generate(input, output, 1, timestamps);
-
-      if (!startTime) {
-        startTime = content.time;
-      }
-
+    if (this.startFrame) {
+      const [content] = this.content.generate(input, output, 1);
       const image = new Image({
         framesOptions,
         filename: content.file,
         minFaceConfidence: this.minFaceConfidence
       });
+      image.collect();
+      console.log('🎉 Resuming from frame', this.startFrame);
+      images.push(content);
+      results.push(image);
+    } else {
+      while (results.length < numStills) {
+        const timestamps = startTime ? [startTime] : undefined;
+        const [content] = this.content.generate(input, output, 1, timestamps);
 
-      await image.prepare();
+        if (!startTime) {
+          startTime = content.time;
+        }
 
-      if (!enableValidator || (await streaks.validate(image))) {
-        console.log('🎉 This image is acceptable!');
-        images.push(content);
-        results.push(image);
-      } else {
-        console.log(
-          `🧐 This image is not acceptable. Skipping to ${
-            startTime + skipLength
-          }s.`
-        );
-        image.delete();
+        const image = new Image({
+          framesOptions,
+          filename: content.file,
+          minFaceConfidence: this.minFaceConfidence
+        });
+
+        await image.prepare();
+
+        if (!enableValidator || (await streaks.validate(image))) {
+          console.log('🎉 This image is acceptable!');
+          images.push(content);
+          results.push(image);
+        } else {
+          console.log(
+            `🧐 This image is not acceptable. Skipping to ${
+              startTime + skipLength
+            }s.`
+          );
+          image.delete();
+        }
+        startTime += skipLength;
       }
-      startTime += skipLength;
     }
 
     this.images = results;
@@ -387,7 +403,9 @@ class Stills {
   async applyFrameFilters() {
     const result = this.result;
     const numImages = this.images.length;
+    const startFrame = this.startFrame || 0;
     let numImage = 0;
+
     for (const image of this.images) {
       console.log(`🎨 Processing image ${numImage + 1}`);
       const frames = image.getFrames();
@@ -404,7 +422,7 @@ class Stills {
         );
       }
 
-      for (let numFrame = 0; numFrame < numFrames; numFrame += 1) {
+      for (let numFrame = startFrame; numFrame < numFrames; numFrame += 1) {
         console.log(
           `⮑  🎞  Frame ${numFrame + 1} (${Math.floor(
             (100 * numFrame) / numFrames
@@ -494,12 +512,12 @@ class Stills {
     });
   }
 
-  async replaceImage(index, newFileName) {
-    await this.images[index].replace(newFileName);
+  replaceImage(index, newFileName) {
+    this.images[index].replace(newFileName);
   }
 
-  async replaceFrame(index, frame, newFileName) {
-    await this.images[index].replaceFrame(frame, newFileName);
+  replaceFrame(index, frame, newFileName) {
+    this.images[index].replaceFrame(frame, newFileName);
   }
 
   async deleteFrame(index, frame) {
