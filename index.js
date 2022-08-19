@@ -388,9 +388,9 @@ class Stills {
     }
   }
 
-  async reset() {
+  async reset(skipCollapse) {
     for (const image of this.images) {
-      await image.reset();
+      await image.reset(skipCollapse);
     }
   }
 
