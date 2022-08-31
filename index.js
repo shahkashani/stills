@@ -454,6 +454,8 @@ class Stills {
             console.log(`⮑  💅 ${filter.name}`);
             const now = Date.now();
             await filter.applyFrame(frame, data);
+            // Can happen outside the loop once everything uses a buffer
+            frame.saveBuffer();
             if (this.isTimeMeasured) {
               console.log(`⮑  🏁 ${filter.name}: ${Date.now() - now}ms`);
             }
@@ -468,8 +470,12 @@ class Stills {
           // @todo This should maybe iterate over the captions
           // Also, this might have to be applied after applyFramesFilters
           // since right now some filters can run after the captions
+          const now = Date.now();
           const caption = result.captions[numImage][0];
           await this.filterCaption.apply(frame, caption, data);
+          if (this.isTimeMeasured) {
+            console.log(`⮑  🏁 captions: ${Date.now() - now}ms`);
+          }
         }
       }
       numImage += 1;
