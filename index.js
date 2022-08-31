@@ -2,6 +2,7 @@ const { unlinkSync } = require('fs');
 const { uniq, compact, map } = require('lodash');
 const pressAnyKey = require('press-any-key');
 const Image = require('./lib/stills/image');
+const measure = require('./lib/utils/measure');
 const { Streaks } = require('./lib/validators');
 
 const MAX_GENERATION_ATTEMPTS = 9;
@@ -25,8 +26,7 @@ class Stills {
     num = null,
     useGlyphs = false,
     minFaceConfidence = 0.5,
-    startFrame = null,
-    isTimeMeasured = true
+    startFrame = null
   } = {}) {
     this.source = source;
     this.content = content;
@@ -45,7 +45,6 @@ class Stills {
     this.useGlyphs = useGlyphs;
     this.passthrough = passthrough;
     this.minFaceConfidence = minFaceConfidence;
-    this.isTimeMeasured = isTimeMeasured;
     this.startFrame = startFrame;
 
     this.result = {
@@ -423,12 +422,9 @@ class Stills {
       }
 
       for (let numFrame = startFrame; numFrame < numFrames; numFrame += 1) {
-        console.log(
-          `⮑  🎞  Frame ${numFrame + 1} (${Math.floor(
-            (100 * numFrame) / numFrames
-          )}%)`
-        );
-
+        const now = Date.now();
+        const percent = Math.floor((100 * numFrame) / numFrames);
+        console.log(`🎞  Frame ${numFrame + 1} (${percent}%)`);
         if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
           console.log('Skipping.');
           continue;
@@ -451,16 +447,11 @@ class Stills {
         };
         for (const filter of filters) {
           if (filter.applyFrame) {
-            console.log(`⮑  💅 ${filter.name}`);
-            const now = Date.now();
-            await filter.applyFrame(frame, data);
-            // Can happen outside the loop once everything uses a buffer
-            frame.saveBuffer();
-            if (this.isTimeMeasured) {
-              console.log(`⮑  🏁 ${filter.name}: ${Date.now() - now}ms`);
-            }
+            await measure(filter.name, () => filter.applyFrame(frame, data));
             this.result.filters[filter.name] = true;
           }
+          // Can happen outside the loop once everything uses a buffer
+          // frame.saveBuffer();
         }
         if (
           this.filterCaption &&
@@ -470,13 +461,15 @@ class Stills {
           // @todo This should maybe iterate over the captions
           // Also, this might have to be applied after applyFramesFilters
           // since right now some filters can run after the captions
-          const now = Date.now();
           const caption = result.captions[numImage][0];
-          await this.filterCaption.apply(frame, caption, data);
-          if (this.isTimeMeasured) {
-            console.log(`⮑  🏁 captions: ${Date.now() - now}ms`);
-          }
+          await measure('captions', () =>
+            this.filterCaption.apply(frame, caption, data)
+          );
         }
+
+        // For intermediate updates
+        frame.saveBuffer();
+        console.log(`🏁 Total frame time: ${Date.now() - now}ms\n`);
       }
       numImage += 1;
     }
