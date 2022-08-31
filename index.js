@@ -447,7 +447,11 @@ class Stills {
         };
         for (const filter of filters) {
           if (filter.applyFrame) {
-            await measure(filter.name, () => filter.applyFrame(frame, data));
+            try {
+              await measure(filter.name, () => filter.applyFrame(frame, data));
+            } catch (err) {
+              console.error(err);
+            }
             this.result.filters[filter.name] = true;
           }
           // Can happen outside the loop once everything uses a buffer
