@@ -422,9 +422,10 @@ class Stills {
       }
 
       for (let numFrame = startFrame; numFrame < numFrames; numFrame += 1) {
+        const frame = frames[numFrame];
         const now = Date.now();
         const percent = Math.floor((100 * numFrame) / numFrames);
-        console.log(`🎞  Frame ${numFrame + 1} (${percent}%)`);
+        console.log(`🎞  Frame ${frame.index + 1} (${percent}%)`);
         if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
           console.log('Skipping.');
           continue;
@@ -434,7 +435,6 @@ class Stills {
           ? [...this.imageFilters[numImage], ...this.filters]
           : this.filters;
 
-        const frame = frames[numFrame];
         const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
 
         const data = {
