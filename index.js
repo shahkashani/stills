@@ -1,5 +1,5 @@
 const { unlinkSync } = require('fs');
-const { uniq, compact, map } = require('lodash');
+const { uniq, compact, map, filter } = require('lodash');
 const pressAnyKey = require('press-any-key');
 const Image = require('./lib/stills/image');
 const measure = require('./lib/utils/measure');
@@ -446,6 +446,10 @@ class Stills {
           prevFrame
         };
         for (const filter of filters) {
+          if (numFrame === 0 && filter.setup) {
+            await measure(`${filter.name} setup`
+            , () => filter.setup(data));
+          }
           if (filter.applyFrame) {
             try {
               await measure(filter.name, () => filter.applyFrame(frame, data));
@@ -456,6 +460,9 @@ class Stills {
           }
           // Can happen outside the loop once everything uses a buffer
           // frame.saveBuffer();
+          if (numFrame === numFrames - 1 && filter.teardown) {
+            await measure(`${filter.name} teardown`, () => filter.teardown(data));
+          }
         }
         if (
           this.filterCaption &&
