@@ -1,9 +1,10 @@
 const { unlinkSync } = require('fs');
-const { uniq, compact, map, filter } = require('lodash');
+const { uniq, compact, map } = require('lodash');
 const pressAnyKey = require('press-any-key');
 const Image = require('./lib/stills/image');
 const measure = require('./lib/utils/measure');
 const { Streaks } = require('./lib/validators');
+const os = require('os');
 
 const MAX_GENERATION_ATTEMPTS = 9;
 
@@ -25,7 +26,7 @@ class Stills {
     passthrough = null,
     num = null,
     useGlyphs = false,
-    minFaceConfidence = 0.5,
+    minFaceConfidence = 0.3,
     startFrame = null
   } = {}) {
     this.source = source;
@@ -426,6 +427,7 @@ class Stills {
         const now = Date.now();
         const percent = Math.floor((100 * numFrame) / numFrames);
         console.log(`🎞  Frame ${frame.index + 1} (${percent}%)`);
+
         if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
           console.log('Skipping.');
           continue;
@@ -447,8 +449,7 @@ class Stills {
         };
         for (const filter of filters) {
           if (numFrame === 0 && filter.setup) {
-            await measure(`${filter.name} setup`
-            , () => filter.setup(data));
+            await measure(`${filter.name} setup`, () => filter.setup(data));
           }
           if (filter.applyFrame) {
             try {
@@ -461,7 +462,9 @@ class Stills {
           // Can happen outside the loop once everything uses a buffer
           // frame.saveBuffer();
           if (numFrame === numFrames - 1 && filter.teardown) {
-            await measure(`${filter.name} teardown`, () => filter.teardown(data));
+            await measure(`${filter.name} teardown`, () =>
+              filter.teardown(data)
+            );
           }
         }
         if (
@@ -480,7 +483,10 @@ class Stills {
 
         // For intermediate updates
         frame.saveBuffer();
-        console.log(`🏁 Total frame time: ${Date.now() - now}ms\n`);
+        console.log(`🏁 Total frame time: ${Date.now() - now}ms`);
+        const osFreeMem = os.freemem();
+        const allFreeMem = osFreeMem / (1024 * 1024);
+        console.log(`🏁 Total free memory: ${Math.round(allFreeMem)}mb\n`);
       }
       numImage += 1;
     }
