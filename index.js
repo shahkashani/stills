@@ -59,7 +59,7 @@ class Stills {
     };
   }
 
-  async generate() {
+  async generate({ isSmart = false } = {}) {
     if (this.passthrough && this.destinations) {
       for (const destination of this.destinations) {
         console.log(`\n🚀 Passing through to to ${destination.name}`);
@@ -78,7 +78,11 @@ class Stills {
       return this.result;
     }
 
-    await this.setup();
+    if (isSmart) {
+      await this.smartSetup();
+    } else {
+      await this.setup();
+    }
 
     if (this.isPrompt) {
       await pressAnyKey();
