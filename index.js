@@ -27,7 +27,8 @@ class Stills {
     num = null,
     useGlyphs = false,
     minFaceConfidence = 0.3,
-    startFrame = null
+    startFrame = null,
+    moderation = null
   } = {}) {
     this.source = source;
     this.content = content;
@@ -47,6 +48,7 @@ class Stills {
     this.passthrough = passthrough;
     this.minFaceConfidence = minFaceConfidence;
     this.startFrame = startFrame;
+    this.moderation = moderation;
 
     this.result = {
       filters: {},
@@ -256,6 +258,13 @@ class Stills {
       output,
       name
     );
+    if (this.moderation && captions.length > 0) {
+      console.log('👩‍⚖️ Running moderation');
+      if (!(await this.moderation.validate(captions))) {
+        console.error('🤯 Caption did not pass validation:', captions);
+        process.exit(1);
+      }
+    }
     const project = {
       source,
       images,
@@ -286,6 +295,14 @@ class Stills {
       console.log(`💬 Getting captions from ${this.caption.name}`);
       const captionResults = await this.caption.get(name);
       captions = captionResults.captions;
+    }
+
+    if (this.moderation && captions.length > 0) {
+      console.log('👩‍⚖️ Running moderation');
+      if (!(await this.moderation.validate(captions))) {
+        console.error('🤯 Caption did not pass validation:', captions);
+        process.exit(1);
+      }
     }
 
     const results = [];
