@@ -32,7 +32,7 @@
     "@vladmandic/face-api": "^0.30.3",
     "@vladmandic/human": "^3.0.5",
     "aws-sdk": "^2.927.0",
-    "bad-words": "^3.0.4",
+    "no-profanity": "^1.4.2",
     "canvas": "^2.11.2",
     "canvas-txt": "^3.0.0",
     "compromise": "^13.11.2",
