@@ -491,14 +491,17 @@ class Stills {
         if (
           this.filterCaption &&
           Array.isArray(result.captions) &&
-          Array.isArray(result.captions[numImage])
+          result.captions[numImage]
         ) {
           // @todo This should maybe iterate over the captions
           // Also, this might have to be applied after applyFramesFilters
           // since right now some filters can run after the captions
-          const caption = result.captions[numImage][0];
+          const imageCaptions = result.captions[numImage];
+          const useCaption = Array.isArray(imageCaptions)
+            ? imageCaptions[0]
+            : imageCaptions;
           await measure('captions', () =>
-            this.filterCaption.apply(frame, caption, data)
+            this.filterCaption.apply(frame, useCaption, data)
           );
         }
 
