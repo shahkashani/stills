@@ -1,6 +1,6 @@
 {
   "name": "stills",
-  "version": "23.10.3",
+  "version": "23.10.4",
   "description": "A stills and GIF bot",
   "main": "index.js",
   "repository": {
