@@ -42,7 +42,6 @@
     "geometric": "^2.2.10",
     "glob": "^7.1.6",
     "gm": "^1.23.1",
-    "image-output": "^2.4.2",
     "jest": "^27.0.4",
     "lodash": "^4.17.21",
     "microsoft-computer-vision": "^0.4.2",
