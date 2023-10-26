@@ -43,12 +43,12 @@ const config = {
     })
   ],
   validators: [new validators.FaceDetection()],
-  getPostText: filterOutput => (filterOutput.captions || []).join('\n'),
+  getPostText: (filterOutput) => (filterOutput.captions || []).join('\n'),
   taggers: [
     new taggers.Episode(),
     new taggers.Static({
       tags: ['Hello']
-    }),
+    })
   ],
   destinations: [
     new destinations.Tumblr({
@@ -58,12 +58,6 @@ const config = {
       tokenSecret: TUMBLR_ACCESS_TOKEN_SECRET,
       blogName: TUMBLR_BLOG_NAME,
       tags: ['Hello']
-    }),
-    new destinations.Twitter({
-      consumerKey: TWITTER_CONSUMER_KEY,
-      consumerSecret: TWITTER_CONSUMER_SECRET,
-      accessTokenKey: TWITTER_ACCESS_TOKEN_KEY,
-      accessTokenSecret: TWITTER_ACCESS_TOKEN_SECRET
     })
   ]
 };
