@@ -55,7 +55,7 @@
     "sbd": "^1.0.18",
     "sharp": "^0.32.0",
     "shelljs": "^0.8.5",
-    "string-similarity": "^4.0.4",
+    "string-similarity-js": "^2.1.4",
     "svgdom": "^0.1.10",
     "tinycolor2": "^1.4.2",
     "tumblr.js": "^4.0.0",
