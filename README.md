@@ -279,7 +279,7 @@ Simply passes along whatever you specify in `tags`.
 ### Captions
 
 ```javascript
-new taggers.CaptionsCognitive();
+new taggers.Captions();
 ```
 
 If you've used the caption filter, it'll extract nouns and other tag-friendly words to use as tags.
