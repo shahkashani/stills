@@ -52,16 +52,14 @@
     "pngjs": "^6.0.0",
     "polygon": "^1.0.2",
     "press-any-key": "^0.1.1",
-    "readimage-frames": "^1.0.0",
     "sbd": "^1.0.18",
     "sharp": "^0.32.0",
+    "sharp-gif2": "^0.1.3",
     "shelljs": "^0.8.5",
     "string-similarity-js": "^2.1.4",
     "svgdom": "^0.1.10",
-    "tinycolor2": "^1.4.2",
     "tumblr.js": "^4.0.0",
     "wasm-vips": "^0.0.4",
-    "writegif": "^1.1.0",
     "yargs": "^13.3.2"
   }
 }
