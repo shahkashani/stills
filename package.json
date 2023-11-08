@@ -7,9 +7,6 @@
     "type": "git",
     "url": "https://github.com/shahkashani/stills"
   },
-  "bin": {
-    "train-faces": "bin/train-faces.js"
-  },
   "engines": {
     "node": ">12.x"
   },
