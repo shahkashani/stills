@@ -65,7 +65,7 @@ const config = {
 generate(config);
 ```
 
-This will generate a random still from your S3 bucket, make sure at least one face appears in the image, add a caption from a random SRT file in the `captions` folder and then upload the result to Tumblr and Twitter.
+This will generate a random still from your S3 bucket, make sure at least one face appears in the image, add a caption from a random SRT file in the `captions` folder and then upload the result to Tumblr.
 
 There are other options for `source`, `content` and `validators`. Keep readin'.
 
@@ -250,8 +250,6 @@ new stills.filters.Stutter({
 
 Taggers help assemble the list of tags that are added to posts when sent to destinations.
 
-(Destinations may choose to ignore these tags (currently, the Twitter destination ignores, while Tumblr uses the tags))
-
 ### Episode
 
 ```javascript
@@ -299,23 +297,9 @@ new stills.destinations.Tumblr({
 
 The name of the video file is automatically added as a tag to the post, but you can also provide additional ones with the `tags` parameter (default: `[]`).
 
-### Twitter
-
-What it says on this box, also.
-
-```javascript
-new stills.destinations.Twitter({
-  consumerKey: TWITTER_CONSUMER_KEY,
-  consumerSecret: TWITTER_CONSUMER_SECRET,
-  accessTokenKey: TWITTER_ACCESS_TOKEN_KEY,
-  accessTokenSecret: TWITTER_ACCESS_TOKEN_SECRET,
-  isIncludeText: true
-});
-```
-
 ### Post text captions
 
-You can add some text to the Tumblr and Twitter posts if you set `isIncludeText` to `true` in each individual destination, and pass in a `getPostText` method into the `generate` call. An object will be passed into `getPostText` method with the output from the various filters that are applied (key is the name of the filter).
+You can add some text to the Tumblr if you set `isIncludeText` to `true` in each individual destination, and pass in a `getPostText` method into the `generate` call. An object will be passed into `getPostText` method with the output from the various filters that are applied (key is the name of the filter).
 
 ## Validators
 
@@ -328,26 +312,6 @@ Using Tensorflow, makes sure there's at least one face in the image.
 ```javascript
 new stills.validators.FaceDetection();
 ```
-
-### Face recognition
-
-The `folder` should point to wherever you're keeping the face descriptors.
-
-```javascript
-new stills.validators.FaceRecognition({
-  folder: resolve('./faces')
-});
-```
-
-What's a face descriptor, you ask? It's a JSON file that describes the face you're trying to match. Below is how you generate it.
-
-1. Find a bunch of images (~10) with the person in them and put them in a folder (e.g. `face-training`). Make sure there are no other people in these images. It does _not_ have to be close-ups -- ideally it's stills from the actual videos you're using.
-1. Create a folder for the descriptor file to be saved in (e.g. `faces`).
-1. `./node_modules/.bin/train-faces -i face-training -o faces --name "Name of the person"`
-1. This will eventually generate `faces/name-of-the-person.json`. Success!
-1. You can delete the `face-training` folder now if you want.
-
-Repeat this for all the people you'd like to match and the validator will make sure at least one of them is present in the image generated.
 
 # Bye!
 

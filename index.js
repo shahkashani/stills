@@ -28,7 +28,9 @@ class Stills {
     useGlyphs = false,
     minFaceConfidence = 0.3,
     startFrame = null,
-    moderation = null
+    moderation = null,
+    onFrameChange = null,
+    onImageChange = null,
   } = {}) {
     this.source = source;
     this.content = content;
@@ -49,6 +51,8 @@ class Stills {
     this.minFaceConfidence = minFaceConfidence;
     this.startFrame = startFrame;
     this.moderation = moderation;
+    this.onFrameChange = onFrameChange;
+    this.onImageChange = onImageChange;
 
     this.result = {
       filters: {},
@@ -509,6 +513,13 @@ class Stills {
         const osFreeMem = os.freemem();
         const allFreeMem = osFreeMem / (1024 * 1024);
         console.log(`🏁 Total free memory: ${Math.round(allFreeMem)}mb`);
+
+        if (this.onFrameChange) {
+          this.onFrameChange(numImage, numFrame);
+        }
+      }
+      if (this.onImageChange) {
+        this.onImageChange(numImage);
       }
       numImage += 1;
     }
