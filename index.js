@@ -427,7 +427,7 @@ class Stills {
       const image = this.images[numImage];
       await this.applyFrameFiltersForImage(image, numImage);
       await this.applyImageFiltersForImage(image, numImage);
-      await image.collapse();
+      await measure('collapse', () => image.collapse());
       this.onImageChange?.(numImage);
     }
   }
