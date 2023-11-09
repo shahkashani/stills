@@ -30,7 +30,7 @@ class Stills {
     startFrame = null,
     moderation = null,
     onFrameChange = null,
-    onImageChange = null,
+    onImageChange = null
   } = {}) {
     this.source = source;
     this.content = content;
@@ -423,135 +423,140 @@ class Stills {
   }
 
   async applyFilters() {
-    await this.applyFrameFilters();
-    await this.applyImageFilters();
-    await this.collapse();
+    for (let numImage = 0; numImage < this.images.length; numImage += 1) {
+      const image = this.images[numImage];
+      await this.applyFrameFiltersForImage(image, numImage);
+      await this.applyImageFiltersForImage(image, numImage);
+      await image.collapse();
+      this.onImageChange?.(numImage);
+    }
   }
 
+  // @todo Deprecate this
   async applyFrameFilters() {
-    const result = this.result;
-    const numImages = this.images.length;
-    const startFrame = this.startFrame || 0;
     let numImage = 0;
-
     for (const image of this.images) {
-      console.log(`🎨 Processing image ${numImage + 1}`);
-      const frames = image.getFrames();
-      const numFrames = frames.length;
-
-      const hasImageFilters =
-        Array.isArray(this.imageFilters) &&
-        Array.isArray(this.imageFilters[numImage]) &&
-        this.imageFilters[numImage].length > 0;
-      if (hasImageFilters) {
-        console.log(
-          '💅 This image has some specific filters',
-          this.imageFilters[numImage]
-        );
-      }
-
-      for (let numFrame = startFrame; numFrame < numFrames; numFrame += 1) {
-        const frame = frames[numFrame];
-        const now = Date.now();
-        const percent = Math.floor((100 * numFrame) / numFrames);
-        console.log(`🎞  Frame ${frame.index + 1} (${percent}%)`);
-
-        if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
-          console.log('Skipping.');
-          continue;
-        }
-
-        const filters = hasImageFilters
-          ? [...this.imageFilters[numImage], ...this.filters]
-          : this.filters;
-
-        const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
-
-        const data = {
-          image,
-          numFrame,
-          numFrames,
-          numImages,
-          numImage,
-          prevFrame
-        };
-        for (const filter of filters) {
-          if (numFrame === 0 && filter.setup) {
-            await measure(`${filter.name} setup`, () => filter.setup(data));
-          }
-          if (filter.applyFrame) {
-            try {
-              await measure(filter.name, () => filter.applyFrame(frame, data));
-            } catch (err) {
-              console.error(err);
-            }
-            this.result.filters[filter.name] = true;
-          }
-          // Can happen outside the loop once everything uses a buffer
-          if (numFrame === numFrames - 1 && filter.teardown) {
-            await measure(`${filter.name} teardown`, () =>
-              filter.teardown(data)
-            );
-          }
-        }
-        if (
-          this.filterCaption &&
-          Array.isArray(result.captions) &&
-          result.captions[numImage]
-        ) {
-          // @todo This should maybe iterate over the captions
-          const imageCaptions = result.captions[numImage];
-          const useCaption = Array.isArray(imageCaptions)
-            ? imageCaptions[0]
-            : imageCaptions;
-          await measure('captions', () =>
-            this.filterCaption.apply(frame, useCaption, data)
-          );
-        }
-
-        console.log(`\n🏁 Total frame time: ${Date.now() - now}ms`);
-        const osFreeMem = os.freemem();
-        const allFreeMem = osFreeMem / (1024 * 1024);
-        console.log(`🏁 Total free memory: ${Math.round(allFreeMem)}mb`);
-
-        if (this.onFrameChange) {
-          this.onFrameChange(numImage, numFrame);
-        }
-      }
-      if (this.onImageChange) {
-        this.onImageChange(numImage);
-      }
+      this.applyFrameFiltersForImage(image, numImage);
       numImage += 1;
     }
   }
 
+  // @todo Deprecate this
   async applyImageFilters() {
+    let numImage = 0;
+    for (const image of this.images) {
+      this.applyFrameImageForImagep(image, numImage);
+      numImage += 1;
+    }
+  }
+
+  async applyFrameFiltersForImage(image, numImage) {
+    const result = this.result;
+    const numImages = this.images.length;
+    const startFrame = this.startFrame || 0;
+
+    console.log(`🎨 Processing image ${numImage + 1}`);
+    const frames = image.getFrames();
+    const numFrames = frames.length;
+
+    const hasImageFilters =
+      Array.isArray(this.imageFilters) &&
+      Array.isArray(this.imageFilters[numImage]) &&
+      this.imageFilters[numImage].length > 0;
+    if (hasImageFilters) {
+      console.log(
+        '💅 This image has some specific filters',
+        this.imageFilters[numImage]
+      );
+    }
+
+    for (let numFrame = startFrame; numFrame < numFrames; numFrame += 1) {
+      const frame = frames[numFrame];
+      const now = Date.now();
+      const percent = Math.floor((100 * numFrame) / numFrames);
+      console.log(`🎞  Frame ${frame.index + 1} (${percent}%)`);
+
+      if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
+        console.log('Skipping.');
+        continue;
+      }
+
+      const filters = hasImageFilters
+        ? [...this.imageFilters[numImage], ...this.filters]
+        : this.filters;
+
+      const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
+
+      const data = {
+        image,
+        numFrame,
+        numFrames,
+        numImages,
+        numImage,
+        prevFrame
+      };
+      for (const filter of filters) {
+        if (numFrame === 0 && filter.setup) {
+          await measure(`${filter.name} setup`, () => filter.setup(data));
+        }
+        if (filter.applyFrame) {
+          try {
+            await measure(filter.name, () => filter.applyFrame(frame, data));
+          } catch (err) {
+            console.error(err);
+          }
+          this.result.filters[filter.name] = true;
+        }
+        // Can happen outside the loop once everything uses a buffer
+        if (numFrame === numFrames - 1 && filter.teardown) {
+          await measure(`${filter.name} teardown`, () => filter.teardown(data));
+        }
+      }
+      if (
+        this.filterCaption &&
+        Array.isArray(result.captions) &&
+        result.captions[numImage]
+      ) {
+        // @todo This should maybe iterate over the captions
+        const imageCaptions = result.captions[numImage];
+        const useCaption = Array.isArray(imageCaptions)
+          ? imageCaptions[0]
+          : imageCaptions;
+        await measure('captions', () =>
+          this.filterCaption.apply(frame, useCaption, data)
+        );
+      }
+      console.log(`\n🏁 Total frame time: ${Date.now() - now}ms`);
+      const osFreeMem = os.freemem();
+      const allFreeMem = osFreeMem / (1024 * 1024);
+      console.log(`🏁 Total free memory: ${Math.round(allFreeMem)}mb`);
+      this.onFrameChange?.(numImage, numFrame);
+    }
+  }
+
+  async applyImageFiltersForImage(image, numImage) {
     const hasImageFilter = this.filters.find((filter) => filter.applyImage);
     if (!hasImageFilter) {
       return;
     }
     const result = this.result;
     const numImages = this.images.length;
-    let numImage = 0;
-    for (const image of this.images) {
-      console.log(`🎨 Applying image filter to image ${numImage + 1}`);
-      for (const filter of this.filters) {
-        if (filter.applyImage) {
-          try {
-            await measure(filter.name, () =>
-              filter.applyImage(image, {
-                numImages,
-                numImage,
-                result
-              })
-            );
-          } catch (err) {
-            console.error(err);
-          }
-          this.result.filters[filter.name] = true;
+    console.log(`🎨 Applying image filter to image ${numImage + 1}`);
+    for (const filter of this.filters) {
+      if (filter.applyImage) {
+        try {
+          await measure(filter.name, () =>
+            filter.applyImage(image, {
+              numImages,
+              numImage,
+              result
+            })
+          );
+        } catch (err) {
+          console.error(err);
         }
+        this.result.filters[filter.name] = true;
       }
-      numImage += 1;
     }
   }
 
