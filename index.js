@@ -225,7 +225,7 @@ class Stills {
         lengths = captionResults.lengths;
       }
       numStills = captions.length || this.num || 1;
-      images = this.content.generate(
+      images = await this.content.generate(
         input,
         output,
         numStills,
@@ -257,10 +257,9 @@ class Stills {
   async setup() {
     const source = await this.getSource();
     const { input, output, name } = source;
-    const { images, timestamps, lengths, captions } = await this.generateImages(
-      input,
-      output,
-      name
+    const { images, timestamps, lengths, captions } = await measure(
+      'generating',
+      () => this.generateImages(input, output, name)
     );
     if (this.moderation && captions.length > 0) {
       console.log('👩‍⚖️ Running moderation');
@@ -315,7 +314,7 @@ class Stills {
     const skipLength = (this.content.duration || 2) + this.content.secondsApart;
 
     if (this.startFrame) {
-      const [content] = this.content.generate(input, output, 1);
+      const [content] = await this.content.generate(input, output, 1);
       const image = new Image({
         framesOptions,
         filename: content.file,
@@ -328,7 +327,7 @@ class Stills {
     } else {
       while (results.length < numStills) {
         const timestamps = startTime ? [startTime] : undefined;
-        const [content] = this.content.generate(input, output, 1, timestamps);
+        const [content] = await this.content.generate(input, output, 1, timestamps);
 
         if (!startTime) {
           startTime = content.time;
