@@ -4,7 +4,6 @@ const pressAnyKey = require('press-any-key');
 const Image = require('./lib/stills/image');
 const measure = require('./lib/utils/measure');
 const { Streaks } = require('./lib/validators');
-const os = require('os');
 
 const MAX_GENERATION_ATTEMPTS = 9;
 
@@ -27,11 +26,14 @@ class Stills {
     num = null,
     useGlyphs = false,
     minFaceConfidence = 0.3,
+    fps = 12,
+    fastPreview = true,
     startFrame = null,
     moderation = null,
     onFrameChange = null,
     onImageChange = null
   } = {}) {
+    this.fastPreview = fastPreview;
     this.source = source;
     this.content = content;
     this.caption = caption;
@@ -53,6 +55,7 @@ class Stills {
     this.moderation = moderation;
     this.onFrameChange = onFrameChange;
     this.onImageChange = onImageChange;
+    this.fps = fps;
 
     this.result = {
       filters: {},
@@ -111,7 +114,6 @@ class Stills {
     if (this.analysis) {
       console.log(`🔬 Running image analysis with ${this.analysis.name}`);
       this.result.analysis = await this.analysis.get(this.images);
-      console.log('🌍 Analysis results:', JSON.stringify(this.result, null, 2));
     }
 
     if (this.description) {
@@ -200,7 +202,14 @@ class Stills {
       return null;
     }
     console.log(`💬 Getting episode name from ${this.caption.name}`);
-    return await this.caption.getEpisodeName(await this.source.getAllNames());
+    const allNames = await measure('episode names', () =>
+      this.source.getAllNames()
+    );
+    const result = await measure('match episode', () =>
+      this.caption.getEpisodeName(allNames)
+    );
+    console.log(`\n🏹 Closest match`, result);
+    return result.name;
   }
 
   async getSource() {
@@ -218,19 +227,17 @@ class Stills {
 
     for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
       if (this.caption) {
-        console.log(`💬 Getting captions from ${this.caption.name}`);
         const captionResults = await this.caption.get(name);
         captions = captionResults.captions;
         timestamps = captionResults.timestamps;
         lengths = captionResults.lengths;
       }
       numStills = captions.length || this.num || 1;
-      images = this.content.generate(
-        input,
-        output,
-        numStills,
-        timestamps,
-        lengths
+      images = await measure('generate', () =>
+        this.content.generate(input, output, numStills, timestamps, lengths, {
+          fps: this.fps,
+          fastPreview: this.fastPreview
+        })
       );
       isValid = await this.validate(images, this.validators);
       if (!isValid) {
@@ -315,20 +322,31 @@ class Stills {
     const skipLength = (this.content.duration || 2) + this.content.secondsApart;
 
     if (this.startFrame) {
-      const [content] = this.content.generate(input, output, 1);
+      const [content] = await measure('generate', () =>
+        this.content.generate(input, output, 1, null, null, {
+          fps: this.fps,
+          fastPreview: this.fastPreview
+        })
+      );
       const image = new Image({
         framesOptions,
+        buffers: content.buffers,
         filename: content.file,
-        minFaceConfidence: this.minFaceConfidence
+        minFaceConfidence: this.minFaceConfidence,
+        fps: this.fps
       });
-      image.collect();
       console.log('🎉 Resuming from frame', this.startFrame);
       images.push(content);
       results.push(image);
     } else {
       while (results.length < numStills) {
         const timestamps = startTime ? [startTime] : undefined;
-        const [content] = this.content.generate(input, output, 1, timestamps);
+        const [content] = await measure('generate', () =>
+          this.content.generate(input, output, 1, timestamps, null, {
+            fps: this.fps,
+            fastPreview: this.fastPreview
+          })
+        );
 
         if (!startTime) {
           startTime = content.time;
@@ -336,8 +354,10 @@ class Stills {
 
         const image = new Image({
           framesOptions,
+          buffers: content.buffers,
           filename: content.file,
-          minFaceConfidence: this.minFaceConfidence
+          minFaceConfidence: this.minFaceConfidence,
+          fps: this.fps
         });
 
         await image.prepare();
@@ -389,7 +409,9 @@ class Stills {
       images.map(async (content) => {
         const image = new Image({
           filename: content.file,
-          minFaceConfidence: this.minFaceConfidence
+          buffers: content.buffers,
+          minFaceConfidence: this.minFaceConfidence,
+          fps: this.fps
         });
         await image.prepare();
         return image;
@@ -471,66 +493,69 @@ class Stills {
     }
 
     for (let numFrame = startFrame; numFrame < numFrames; numFrame += 1) {
-      const frame = frames[numFrame];
-      const now = Date.now();
       const percent = Math.floor((100 * numFrame) / numFrames);
-      console.log(`🎞  Frame ${frame.index + 1} (${percent}%)`);
-
-      if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
-        console.log('Skipping.');
-        continue;
-      }
-
-      const filters = hasImageFilters
-        ? [...this.imageFilters[numImage], ...this.filters]
-        : this.filters;
-
-      const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
-
-      const data = {
-        image,
-        numFrame,
-        numFrames,
-        numImages,
-        numImage,
-        prevFrame
-      };
-      for (const filter of filters) {
-        if (numFrame === 0 && filter.setup) {
-          await measure(`${filter.name} setup`, () => filter.setup(data));
-        }
-        if (filter.applyFrame) {
-          try {
-            await measure(filter.name, () => filter.applyFrame(frame, data));
-          } catch (err) {
-            console.error(err);
+      const frame = frames[numFrame];
+      await measure(
+        `🎞  Frame ${frame.index + 1} (${percent}%)`,
+        async () => {
+          if (this.filterSkipFrames.indexOf(numFrame) !== -1) {
+            console.log('Skipping.');
+            return;
           }
-          this.result.filters[filter.name] = true;
-        }
-        // Can happen outside the loop once everything uses a buffer
-        if (numFrame === numFrames - 1 && filter.teardown) {
-          await measure(`${filter.name} teardown`, () => filter.teardown(data));
-        }
-      }
-      if (
-        this.filterCaption &&
-        Array.isArray(result.captions) &&
-        result.captions[numImage]
-      ) {
-        // @todo This should maybe iterate over the captions
-        const imageCaptions = result.captions[numImage];
-        const useCaption = Array.isArray(imageCaptions)
-          ? imageCaptions[0]
-          : imageCaptions;
-        await measure('captions', () =>
-          this.filterCaption.apply(frame, useCaption, data)
-        );
-      }
-      console.log(`\n🏁 Total frame time: ${Date.now() - now}ms`);
-      const osFreeMem = os.freemem();
-      const allFreeMem = osFreeMem / (1024 * 1024);
-      console.log(`🏁 Total free memory: ${Math.round(allFreeMem)}mb`);
-      this.onFrameChange?.(numImage, numFrame);
+
+          const filters = hasImageFilters
+            ? [...this.imageFilters[numImage], ...this.filters]
+            : this.filters;
+
+          const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
+
+          const data = {
+            image,
+            numFrame,
+            numFrames,
+            numImages,
+            numImage,
+            prevFrame
+          };
+          for (const filter of filters) {
+            if (numFrame === 0 && filter.setup) {
+              await measure(`${filter.name} setup`, () => filter.setup(data));
+            }
+            if (filter.applyFrame) {
+              try {
+                await measure(filter.name, () =>
+                  filter.applyFrame(frame, data)
+                );
+              } catch (err) {
+                console.error(err);
+              }
+              this.result.filters[filter.name] = true;
+            }
+            // Can happen outside the loop once everything uses a buffer
+            if (numFrame === numFrames - 1 && filter.teardown) {
+              await measure(`${filter.name} teardown`, () =>
+                filter.teardown(data)
+              );
+            }
+          }
+          if (
+            this.filterCaption &&
+            Array.isArray(result.captions) &&
+            result.captions[numImage]
+          ) {
+            // @todo This should maybe iterate over the captions
+            const imageCaptions = result.captions[numImage];
+            const useCaption = Array.isArray(imageCaptions)
+              ? imageCaptions[0]
+              : imageCaptions;
+            await measure('captions', () =>
+              this.filterCaption.apply(frame, useCaption, data)
+            );
+          }
+          this.onFrameChange?.(numImage, numFrame);
+        },
+        false
+      );
     }
   }
 
