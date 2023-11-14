@@ -52,6 +52,7 @@
     "pngjs": "^6.0.0",
     "polygon": "^1.0.2",
     "press-any-key": "^0.1.1",
+    "random-word": "^2.0.0",
     "sbd": "^1.0.18",
     "sharp": "^0.32.0",
     "sharp-gif2": "^0.1.3",
