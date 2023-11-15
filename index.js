@@ -467,7 +467,7 @@ class Stills {
   async applyImageFilters() {
     let numImage = 0;
     for (const image of this.images) {
-      this.applyFrameImageForImagep(image, numImage);
+      this.applyImageFiltersForImage(image, numImage);
       numImage += 1;
     }
   }
@@ -552,10 +552,10 @@ class Stills {
               this.filterCaption.apply(frame, useCaption, data)
             );
           }
-          this.onFrameChange?.(numImage, numFrame);
         },
         false
       );
+      this.onFrameChange?.(numImage, numFrame);
     }
   }
 
@@ -583,6 +583,7 @@ class Stills {
         this.result.filters[filter.name] = true;
       }
     }
+    this.onImageChange?.(numImage);
   }
 
   deleteStills() {
