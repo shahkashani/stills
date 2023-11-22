@@ -4,6 +4,7 @@ const pressAnyKey = require('press-any-key');
 const Image = require('./lib/stills/image');
 const measure = require('./lib/utils/measure');
 const { Streaks } = require('./lib/validators');
+const { createClient } = require('redis');
 
 const MAX_GENERATION_ATTEMPTS = 9;
 
@@ -56,6 +57,8 @@ class Stills {
     this.onFrameChange = onFrameChange;
     this.onImageChange = onImageChange;
     this.fps = fps;
+    this.redis = createClient();
+    this.redis.on('error', (err) => console.log('Database error', err));
 
     this.result = {
       filters: {},
@@ -68,7 +71,25 @@ class Stills {
     };
   }
 
+  async redisConnect() {
+    if (this.redis.isOpen) {
+      return;
+    }
+    await this.redis.connect();
+    console.log('🔌 Connected to Redis.');
+  }
+
+  async redisDisconnect() {
+    if (!this.redis.isOpen) {
+      return;
+    }
+    await this.redis.disconnect();
+    console.log('🔌 Disconnected from Redis.');
+  }
+
   async generate({ isSmart = false } = {}) {
+    await this.redisConnect();
+
     if (this.passthrough && this.destinations) {
       for (const destination of this.destinations) {
         console.log(`\n🚀 Passing through to to ${destination.name}`);
@@ -206,7 +227,7 @@ class Stills {
       this.source.getAllNames()
     );
     const result = await measure('match episode', () =>
-      this.caption.getEpisodeName(allNames)
+      this.caption.getEpisodeName(allNames, { redis: this.redis })
     );
     console.log(`\n🏹 Closest match`, result);
     return result.name;
@@ -584,6 +605,13 @@ class Stills {
       }
     }
     this.onImageChange?.(numImage);
+  }
+
+  async teardown(isDelete = false) {
+    if (isDelete) {
+      this.deleteStills();
+    }
+    await this.redisDisconnect();
   }
 
   deleteStills() {

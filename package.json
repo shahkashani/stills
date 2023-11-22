@@ -53,6 +53,7 @@
     "polygon": "^1.0.2",
     "press-any-key": "^0.1.1",
     "random-word": "^2.0.0",
+    "redis": "^4.6.11",
     "sbd": "^1.0.18",
     "sharp": "^0.32.6",
     "sharp-gif2": "^0.1.3",
