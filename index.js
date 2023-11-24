@@ -5,6 +5,7 @@ const Image = require('./lib/stills/image');
 const measure = require('./lib/utils/measure');
 const { Streaks } = require('./lib/validators');
 const { createClient } = require('redis');
+const highlightWords = require('./lib/utils/highlight-words');
 
 const MAX_GENERATION_ATTEMPTS = 9;
 
@@ -20,6 +21,7 @@ class Stills {
     destinations = [],
     validators = [],
     taggers = [],
+    frameFilters = {},
     description = null,
     isPrompt = false,
     analysis = null,
@@ -42,6 +44,7 @@ class Stills {
     this.filters = filters;
     this.imageFilters = imageFilters;
     this.filterSkipFrames = filterSkipFrames;
+    this.frameFilters = frameFilters;
     this.destinations = destinations;
     this.validators = validators;
     this.taggers = taggers;
@@ -304,6 +307,7 @@ class Stills {
       timestamps,
       captions
     };
+
     console.log(project);
     await this.restore(project);
     return project;
@@ -420,6 +424,12 @@ class Stills {
     this.result.timestamps = timestamps;
     this.result.lengths = lengths;
     this.result.content = images;
+
+    const highlights = highlightWords(captions);
+    if (highlights.formattedText) {
+      console.log('🔥 Highlighting:', highlights.formattedText);
+    }
+
     if (isPrepare) {
       await this.prepare(images);
     }
@@ -506,10 +516,22 @@ class Stills {
       Array.isArray(this.imageFilters) &&
       Array.isArray(this.imageFilters[numImage]) &&
       this.imageFilters[numImage].length > 0;
+
+    const hasFrameFilters =
+      Object.keys(this.frameFilters).length > 0 &&
+      Object.keys(this.frameFilters[numImage]).length > 0;
+
     if (hasImageFilters) {
       console.log(
-        '💅 This image has some specific filters',
+        '💅 This image has some specific image-level filters',
         this.imageFilters[numImage]
+      );
+    }
+
+    if (hasFrameFilters) {
+      console.log(
+        '💅 This image has some specific frame-level filters',
+        this.frameFilters[numImage]
       );
     }
 
@@ -528,6 +550,14 @@ class Stills {
             ? [...this.imageFilters[numImage], ...this.filters]
             : this.filters;
 
+          const frameFilters =
+            hasFrameFilters &&
+            Array.isArray(this.frameFilters[numImage][numFrame])
+              ? this.frameFilters[numImage][numFrame]
+              : [];
+
+          const useFilters = frameFilters.length > 0 ? frameFilters : filters;
+
           const prevFrame = numFrame > 0 ? frames[numFrame - 1] : null;
 
           const data = {
@@ -538,7 +568,7 @@ class Stills {
             numImage,
             prevFrame
           };
-          for (const filter of filters) {
+          for (const filter of useFilters) {
             if (numFrame === 0 && filter.setup) {
               await measure(`${filter.name} setup`, () => filter.setup(data));
             }
