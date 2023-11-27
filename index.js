@@ -17,7 +17,7 @@ class Stills {
     filterCaption,
     filters = [],
     filterSkipFrames = [],
-    imageFilters = [],
+    imageFilters = {},
     destinations = [],
     validators = [],
     taggers = [],
@@ -350,7 +350,8 @@ class Stills {
       const [content] = await measure('generate', () =>
         this.content.generate(input, output, 1, null, null, {
           fps: this.fps,
-          fastPreview: this.fastPreview
+          fastPreview: this.fastPreview,
+          isSmartSetup: true
         })
       );
       const image = new Image({
@@ -369,7 +370,8 @@ class Stills {
         const [content] = await measure('generate', () =>
           this.content.generate(input, output, 1, timestamps, null, {
             fps: this.fps,
-            fastPreview: this.fastPreview
+            fastPreview: this.fastPreview,
+            isSmartSetup: true
           })
         );
 
@@ -513,13 +515,10 @@ class Stills {
     const numFrames = frames.length;
 
     const hasImageFilters =
-      Array.isArray(this.imageFilters) &&
-      Array.isArray(this.imageFilters[numImage]) &&
-      this.imageFilters[numImage].length > 0;
+      Object.keys(this.imageFilters).length > 0 && this.imageFilters[numImage];
 
     const hasFrameFilters =
-      Object.keys(this.frameFilters).length > 0 &&
-      Object.keys(this.frameFilters[numImage]).length > 0;
+      Object.keys(this.frameFilters).length > 0 && this.frameFilters[numImage];
 
     if (hasImageFilters) {
       console.log(
@@ -547,7 +546,7 @@ class Stills {
           }
 
           const filters = hasImageFilters
-            ? [...this.imageFilters[numImage], ...this.filters]
+            ? this.imageFilters[numImage]
             : this.filters;
 
           const frameFilters =
@@ -569,8 +568,9 @@ class Stills {
             prevFrame
           };
           for (const filter of useFilters) {
-            if (numFrame === 0 && filter.setup) {
+            if (filter.setup && !filter.isSetup) {
               await measure(`${filter.name} setup`, () => filter.setup(data));
+              filter.isSetup = true;
             }
             if (filter.applyFrame) {
               try {
