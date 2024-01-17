@@ -6,6 +6,7 @@ const measure = require('./lib/utils/measure');
 const { Streaks } = require('./lib/validators');
 const { createClient } = require('redis');
 const highlightWords = require('./lib/utils/highlight-words');
+const fetch = require('node-fetch');
 
 const MAX_GENERATION_ATTEMPTS = 9;
 
@@ -670,6 +671,22 @@ class Stills {
   async deleteFrame(index, frame) {
     console.log(`🗑 Deleting frame ${frame} of image ${index}`);
     await this.images[index].deleteFrame(frame);
+  }
+
+  async callWebHook(url, extraData = {}) {
+    const data = { ...this.result, content: undefined, ...extraData };
+    console.log(`🪝 Calling webhook (${url}) with data`, data);
+    try {
+      return await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+    } catch (err) {
+      console.error('Could not successfully call webhook', err);
+    }
   }
 }
 
