@@ -376,10 +376,6 @@ class Stills {
           })
         );
 
-        if (!startTime) {
-          startTime = content.time;
-        }
-
         const image = new Image({
           framesOptions,
           buffers: content.buffers,
@@ -396,13 +392,12 @@ class Stills {
           results.push(image);
         } else {
           console.log(
-            `🧐 This image is not acceptable. Skipping to ${
-              startTime + skipLength
-            }s.`
+            `🧐 This image is not acceptable. Skipping to next checkpoint.`
           );
           image.delete();
         }
-        startTime += skipLength;
+
+        startTime = content.time + skipLength;
       }
     }
 
