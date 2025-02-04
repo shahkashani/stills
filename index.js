@@ -580,9 +580,10 @@ class Stills {
             }
             // Can happen outside the loop once everything uses a buffer
             if (numFrame === numFrames - 1 && filter.teardown) {
-              await measure(`${filter.name} teardown`, () =>
-                filter.teardown(data)
-              );
+              await measure(`${filter.name} teardown`, () => {
+                filter.teardown(data);
+                filter.isSetup = false;
+              });
             }
           }
           if (
