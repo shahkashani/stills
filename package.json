@@ -31,7 +31,7 @@
     "@tensorflow/tfjs-node": "^4.12.0",
     "@vladmandic/human": "^3.0.5",
     "canvas": "^2.11.2",
-    "canvas-txt": "^3.0.0",
+    "canvas-txt": "^4.1.1",
     "compromise": "^13.11.2",
     "compromise-sentences": "^0.3.0",
     "compromise-strict": "0.0.2",
