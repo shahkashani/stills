@@ -636,24 +636,9 @@ class Stills {
 
   async teardown(isDelete = false) {
     if (isDelete) {
-      this.deleteStills();
+      await this.delete();
     }
     await this.redisDisconnect();
-  }
-
-  deleteStills() {
-    const result = this.result;
-    const files = Array.isArray(result)
-      ? uniq(compact(map(result, 'content')))
-      : map(result.content, 'file');
-
-    if (!Array.isArray(files)) {
-      return;
-    }
-
-    files.forEach((file) => {
-      unlinkSync(file);
-    });
   }
 
   replaceImage(index, newFileName) {
