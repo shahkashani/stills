@@ -17,6 +17,7 @@ class Stills {
     caption,
     filterCaption,
     filters = [],
+    textFilters = [],
     filterSkipFrames = [],
     imageFilters = {},
     destinations = [],
@@ -60,6 +61,8 @@ class Stills {
     this.moderation = moderation;
     this.onFrameChange = onFrameChange;
     this.onImageChange = onImageChange;
+    this.textFilters = textFilters;
+
     this.fps = fps;
     this.redis = createClient();
     this.redis.on('error', (err) => console.log('Database error', err));
@@ -253,7 +256,7 @@ class Stills {
     for (let i = 0; !isValid && i <= MAX_GENERATION_ATTEMPTS; i++) {
       if (this.caption) {
         const captionResults = await this.caption.get(name);
-        captions = captionResults.captions;
+        captions = this.applyTextFilters(captionResults.captions);
         timestamps = captionResults.timestamps;
         lengths = captionResults.lengths;
       }
@@ -331,7 +334,7 @@ class Stills {
     if (this.caption) {
       console.log(`💬 Getting captions from ${this.caption.name}`);
       const captionResults = await this.caption.get(name);
-      captions = captionResults.captions;
+      captions = this.applyTextFilters(captionResults.captions);
     }
 
     if (this.moderation && captions.length > 0) {
@@ -470,6 +473,25 @@ class Stills {
   async reset(skipCollapse) {
     for (const image of this.images) {
       await image.reset(skipCollapse);
+    }
+  }
+
+  applyTextFilters(captions) {
+    if (this.textFilters) {
+      return captions.map((caption) => {
+        let newCaption = caption;
+        for (const filter of this.textFilters) {
+          console.log(`💬 Applying text filter ${filter.name} on "${caption}"`);
+          if (Array.isArray(newCaption)) {
+            newCaption = newCaption.map((c) => filter.apply(c));
+          } else {
+            newCaption = filter.apply(newCaption);
+          }
+        }
+        return newCaption;
+      });
+    } else {
+      return captions;
     }
   }
 
@@ -683,5 +705,6 @@ module.exports = {
   analysis: require('./lib/analysis'),
   utils: require('./lib/utils'),
   captions: require('./lib/captions'),
-  moderation: require('./lib/moderation')
+  moderation: require('./lib/moderation'),
+  textFilters: require('./lib/textFilters')
 };
