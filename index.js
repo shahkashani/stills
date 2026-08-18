@@ -583,7 +583,8 @@ class Stills {
             numFrames,
             numImages,
             numImage,
-            prevFrame
+            prevFrame,
+            result
           };
           for (const filter of useFilters) {
             if (filter.setup && !filter.isSetup) {
