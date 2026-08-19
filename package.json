@@ -44,7 +44,6 @@
     "jest": "^29.7.0",
     "knuth-morris-pratt": "^1.0.0",
     "lodash": "^4.17.21",
-    "musixmatch-node": "^1.0.2",
     "no-profanity": "^1.4.2",
     "node-fetch": "^2.7.0",
     "parse-srt": "^1.0.0-alpha",
